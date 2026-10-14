@@ -15,19 +15,28 @@ tai:{n:'Tai Chi',c:'#10b981',hair:'#d9d9d9',band:'#065f46',hp:115,sp:125,g:.8,id
 mt:{n:'Muay Thai',c:'#f59e0b',hair:'#2a1b12',band:'#fde68a',hp:110,sp:150,g:.6,id:50,
  L:{n:'Kick',dmg:9,rng:58,arc:1.3,w:.12,a:.06,r:.22,kb:190,stun:.2},
  H:{n:'Clinch',dmg:0,rng:52,arc:1.5,w:.18,a:.06,r:.25,clinch:1,lg:60}}};
-const ORDER=['kyo','box','tai','mt'];
+const ORDER=['kyo','box','tai','mt'],DEF=['ken','bob','susie','tom'];
+for(const k of ORDER)S[k].b=k;
+const mod=(b,o)=>Object.assign({},S[b],{b},o);
+S.ken=mod('kyo',{n:'Ken',t:'Balanced karate'});
+S.bob=mod('box',{n:'Bob',t:'Fast boxer'});
+S.susie=mod('tai',{n:'Susie',t:'Parry and push'});
+S.tom=mod('mt',{n:'Tom',t:'Knees and elbows'});
+S.guyou=mod('kyo',{n:'Guyou',t:'Iron body: tough, slow',c:'#a855f7',hair:'#2b1b3a',band:'#e9d5ff',hp:150,sp:120,dm:.95});
+S.tanya=mod('box',{n:'Tanya',t:'Speedster: fast, fragile',c:'#ec4899',hair:'#5b1d3b',band:'#fff',hp:88,sp:195,dm:1.05});
+S.rugof=mod('mt',{n:'Rugof',t:'Heavy clincher',c:'#14b8a6',hair:'#0f2b2a',band:'#5eead4',hp:128,sp:140,dm:1.15});
 const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 const r1=v=>Math.round(v*10)/10;
 
 function createSim(){
- const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0]};
+ const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice()};
  const E=o=>sim.ev.push(o);
  const nm=i=>sim.human[i]?sim.names[i]:'CPU';
  function near(f){let b=null,bd=1e9;for(const e of sim.F)if(e!==f&&!e.ko){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
  function mk(i,k){const s=S[k],a=i*TAU/4+TAU/8;
   return{i,k,s,x:Math.cos(a)*170,y:Math.sin(a)*170,vx:0,vy:0,dx:0,dy:0,face:a+Math.PI,hp:s.hp,max:s.hp,stun:0,slow:0,inv:0,dashT:0,dashCd:0,lock:0,atk:null,gT:-1,combo:0,comboT:0,clinch:null,ko:false,off:false,buf:null,bufT:0,limb:1,in:{mx:0,my:0,guard:false},
   ai:{t:.8+Math.random(),sw:0,sd:1,gu:0,sk:.3+Math.random()*.4,ag:.7+Math.random()*.5}}}
- function build(all){sim.F=ORDER.map((k,i)=>{const f=mk(i,k);if(!all&&!sim.human[i]&&!sim.aiFill)f.off=f.ko=true;return f})}
+ function build(all){sim.F=ORDER.map((_,i)=>{const f=mk(i,sim.chars[i]);if(!all&&!sim.human[i]&&!sim.aiFill)f.off=f.ko=true;return f})}
  const active=()=>ORDER.filter((k,i)=>sim.human[i]||sim.aiFill).length;
  function round(){if(active()<2){sim.lobby();return}sim.rd++;build(false);sim.ph='count';sim.pt=3;sim.msg=''}
  function check(){if(sim.ph!=='fight')return;const al=sim.F.filter(f=>!f.off&&!f.ko);
@@ -42,12 +51,12 @@ function createSim(){
   if(v.hp<=0){v.hp=0;v.ko=true;v.atk=null;v.clinch=null;v.vx+=Math.cos(an)*300;v.vy+=Math.sin(an)*300;
    E({e:'t',x:v.x,y:v.y-34,s:'KO!',c:'#ff5a4d'});E({e:'sh',v:16});sim.hs=.15;check()}}
  function hit(a,v,d,dist){
-  let dmg=d.dmg,lab=d.n,kb=d.kb,stun=d.stun;
-  if(a.k==='mt'&&d===a.s.L&&dist<34){dmg*=1.5;lab='Elbow'}
-  if(a.k==='box'&&d===a.s.L){a.combo=a.comboT>0?a.combo+1:1;a.comboT=.8;if(a.combo%3===0){dmg*=2;kb*=2;stun=.3;lab='Cross'}}
+  let dmg=d.dmg*(a.s.dm||1),lab=d.n,kb=d.kb,stun=d.stun;
+  if(a.s.b==='mt'&&d===a.s.L&&dist<34){dmg*=1.5;lab='Elbow'}
+  if(a.s.b==='box'&&d===a.s.L){a.combo=a.comboT>0?a.combo+1:1;a.comboT=.8;if(a.combo%3===0){dmg*=2;kb*=2;stun=.3;lab='Cross'}}
   const fa=Math.atan2(a.y-v.y,a.x-v.x);
   if(v.gT>=0&&Math.abs(ad(fa,v.face))<1.3){
-   if(v.k==='tai'&&v.gT<.3){a.stun=.9;a.atk=null;a.clinch=null;a.vx+=Math.cos(fa)*380;a.vy+=Math.sin(fa)*380;v.hp=Math.min(v.max,v.hp+5);
+   if(v.s.b==='tai'&&v.gT<.3){a.stun=.9;a.atk=null;a.clinch=null;a.vx+=Math.cos(fa)*380;a.vy+=Math.sin(fa)*380;v.hp=Math.min(v.max,v.hp+5);
     E({e:'t',x:v.x,y:v.y-26,s:'Parry!',c:'#6ee7b7'});E({e:'p',x:v.x,y:v.y,c:'#6ee7b7',n:14});E({e:'sh',v:8});sim.hs=.07;return}
    hurt(a,v,dmg*(1-v.s.g*(d.gb||1)),kb*.3,0,0,true);return}
   hurt(a,v,dmg,kb,stun,d.slow||0);
@@ -92,13 +101,14 @@ function createSim(){
   if(d>id+10){i.mx=ux;i.my=uy}else if(d<id-16){i.mx=-ux*.7;i.my=-uy*.7}else{i.mx=-uy*a.sd*.6;i.my=ux*a.sd*.6}
   for(const e of sim.F){if(e===f||e.ko||!e.atk||e.atk.hit)continue;if(Math.hypot(e.x-f.x,e.y-f.y)>e.atk.d.rng+34)continue;
    const key='r'+f.i;if(e.atk[key]===undefined)e.atk[key]=Math.random()<a.sk;
-   if(e.atk[key]&&(f.k!=='tai'||e.atk.d.w-e.atk.t<.2))a.gu=.38}
+   if(e.atk[key]&&(f.s.b!=='tai'||e.atk.d.w-e.atk.t<.2))a.gu=.38}
   if(a.gu>0)i.guard=true;
   if(!i.guard&&a.t<=0&&d<f.s.L.rng+4){a.t=(.35+Math.random()*.7)/a.ag;let hv=Math.random()<.3;
-   if(f.k==='tai')hv=sim.F.filter(e=>e!==f&&!e.ko&&Math.hypot(e.x-f.x,e.y-f.y)<85).length>=2||Math.random()<.12;
+   if(f.s.b==='tai')hv=sim.F.filter(e=>e!==f&&!e.ko&&Math.hypot(e.x-f.x,e.y-f.y)<85).length>=2||Math.random()<.12;
    f.buf=hv?'heavy':'light';f.bufT=.3}
   if(f.hp<f.max*.35&&d<70&&Math.random()<dt*.7){i.mx=-ux;i.my=-uy;f.buf='dash';f.bufT=.2}}
 
+ sim.setChar=(i,k)=>{sim.chars[i]=(S[k]&&S[k].b)?k:DEF[i];if(sim.ph==='lobby')build(true)};
  sim.lobby=()=>{sim.ph='lobby';sim.msg='';build(true)};
  sim.start=()=>{if(active()<2)return false;sim.wins=[0,0,0,0];sim.rd=0;round();return true};
  sim.input=(i,mx,my,g)=>{const f=sim.F[i];if(!f||!sim.human[i]||f.ko)return;const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}f.in.mx=mx;f.in.my=my;f.in.guard=!!g};

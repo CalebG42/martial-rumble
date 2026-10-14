@@ -60,6 +60,8 @@ body.hc canvas{filter:contrast(1.25) saturate(1.3)}body.hc .card,body.hc .ghost,
 #btns{transform:scale(var(--bs,1));transform-origin:bottom right}
 .lh #zone{left:auto;right:0}.lh #hint{left:auto;right:34px}.lh #btns{right:auto;left:10px;transform-origin:bottom left}
 .lh .b[data-k=light]{right:auto;left:0}.lh .b[data-k=heavy]{right:auto;left:98px}.lh .b[data-k=guard]{right:auto;left:10px}.lh .b[data-k=dash]{right:auto;left:92px}
+.card.lk{opacity:.55}.card.lk b:after{content:' \1F512'}
+.xpb{display:block;height:8px;background:#ffffff14;border-radius:4px}.xpb u{display:block;height:100%;width:0;background:linear-gradient(90deg,#d23b2e,#ffd27a);border-radius:4px}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -75,17 +77,18 @@ body.hc canvas{filter:contrast(1.25) saturate(1.3)}body.hc .card,body.hc .ghost,
  <div class="row"><button class="ghost" id="sh">Share code</button><button class="ghost go" id="st">Start match</button></div><div class="k" id="wt">WAITING FOR HOST</div></div>
 <div id="toast" class="h"></div>
 <div id="home" class="ov"><h1>Martial RUMBLE</h1><p class="sub">Overhead fighting with many styles.</p>
- <div class="nav"><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
+ <div class="nav"><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="chr">Characters</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
 <div id="opt" class="ov h"><h2>Options</h2><div class="pan" id="optb"></div><p class="sub">Accounts arrive with ranked mode.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="ctls" class="ov h"><h2>Controls</h2><div class="pan" id="ctlb"></div>
  <div class="pan t"><span><b>Left thumb:</b> move.</span><span><b>Strike:</b> quick hit.</span><span><b>Heavy:</b> slow and strong.</span><span><b>Guard:</b> hold to block.</span><span><b>Dash:</b> quick dodge, brief safe moment.</span><span><b>Keyboard:</b> WASD, J, K, L, Space.</span></div><button class="ghost" data-go="home">Back</button></div>
 <div id="sup" class="ov h"><h2>Support</h2><div class="pan t" id="supb"></div><button class="ghost" data-go="home">Back</button></div>
 <div id="abt" class="ov h"><h2>About Us</h2><div class="pan t"><span>Martial RUMBLE is an overhead fighting game with many fighting styles, and more are on the way.</span><span>Version 1.2</span></div><button class="ghost" data-go="home">Back</button></div>
+<div id="chr" class="ov h"><h2>Characters</h2><div class="pan"><div class="st"><b id="lv"></b><b id="cn"></b></div><i class="xpb"><u id="xpu"></u></i></div><div class="grid" id="grid"></div><p class="sub">Win rounds to earn XP and coins, then unlock fighters.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="menu" class="ov h">
  <button class="ghost" data-go="home">Back</button><h2>Modes</h2>
  <p class="sub">Four fighting styles, one ring. Last fighter standing wins.</p>
  <input type="text" id="nm" maxlength="4" placeholder="NAME" autocomplete="off" autocapitalize="characters" spellcheck="false">
- <div class="grid" id="grid"></div>
+ <button class="ghost" id="chb" data-go="chr" style="width:min(420px,100%)"></button>
  <button class="ghost go" id="pr" style="width:min(420px,100%)">Practice vs AI</button>
  <div class="pan"><div class="sub">Play online</div>
   <div class="row"><input type="text" id="jc" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="ghost" id="jn">Join room</button></div>
@@ -110,15 +113,28 @@ const nm=()=>$('nm').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
 $('nm').oninput=()=>{$('nm').value=nm()};$('jc').oninput=()=>{$('jc').value=$('jc').value.toUpperCase().replace(/[^A-Z]/g,'')};
 const LS=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch{}};
 const PW={kyo:.95,box:.6,tai:.45,mt:.75},TG={kyo:'Heavy karate',box:'Fast hands',tai:'Parry and push',mt:'Knees and clinch'};
-pick=+LS('rmp')||0;$('nm').value=LS('rmn')||'';
-$('grid').innerHTML=Rumble.ORDER.map((k,i)=>{const t=S[k];return `<button class="card${i===pick?' sel':''}" data-s="${i}" style="--c:${t.c}"><b>${t.n}</b><span>${TG[k]}</span><i><u style="width:${t.hp/1.25}%"></u></i><i><u style="width:${t.sp/1.72}%"></u></i><i><u style="width:${PW[k]*100}%"></u></i></button>`}).join('');
-document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{pick=+b.dataset.s;buzz(6);document.querySelectorAll('[data-s]').forEach(c=>c.classList.toggle('sel',c===b))});
+pick=0;$('nm').value=LS('rmn')||'';
+const SOON=['Meso','Beta Z','Xion','ABF 10'],CHARS=['ken','bob','susie','tom','guyou','tanya','rugof'],COST={tom:150,guyou:300,tanya:300,rugof:400};
+let PRG=Object.assign({xp:0,coins:0,un:['ken','bob','susie']},JSON.parse(LS('rmpr')||'{}')),ck=LS('rmk')||'ken';
+if(!PRG.un.includes(ck))ck='ken';
+const savePrg=()=>LS('rmpr',JSON.stringify(PRG));
+function cards(){const bar=w=>`<i><u style="width:${Math.min(100,w)}%"></u></i>`;
+ $('grid').innerHTML=CHARS.map(k=>{const t=S[k],lk=!PRG.un.includes(k);return `<button class="card${k===ck?' sel':''}${lk?' lk':''}" data-c="${k}" style="--c:${t.c}"><b>${t.n}</b><span>${lk?COST[k]+' coins':t.t}</span>${bar(t.hp/1.5)}${bar(t.sp/1.95)}${bar(PW[t.b]*(t.dm||1)*100)}</button>`}).join('')+SOON.map(n=>`<div class="card lk" style="--c:#666"><b>${n}</b><span>Coming soon</span></div>`).join('');
+ $('grid').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=b.dataset.c;buzz(6);
+  if(PRG.un.includes(k)){ck=k;LS('rmk',k)}
+  else if(PRG.coins<COST[k])toast('Need '+(COST[k]-PRG.coins)+' more coins');
+  else{PRG.coins-=COST[k];PRG.un.push(k);ck=k;LS('rmk',k);savePrg();toast(S[k].n+' unlocked!')}
+  cards()});
+ $('lv').textContent='Level '+(1+Math.floor(PRG.xp/200));$('cn').textContent=PRG.coins+' coins';$('xpu').style.width=(PRG.xp%200)/2+'%';
+ $('chb').textContent='Fighter: '+S[ck].n+'  (change)'}
+function reward(w){const x=w?60:20,c=w?40:10;PRG.xp+=x;PRG.coins+=c;savePrg();toast((w?'Victory! ':'')+'+'+x+' XP, +'+c+' coins');cards()}
+cards();
 /* ---- state flow ---- */
 function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);if(!master)$('mp').classList.add('h')}
 function leave(){if(ws){ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
  show('home');for(const i of['quit','snd','mbtn','mp','lob'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
-$('pr').onclick=()=>{sim=createSim();me=pick;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
+$('pr').onclick=()=>{sim=createSim();me=pick;sim.setChar(me,ck);sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
 function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m))}
 function connect(first){
  if(ws)return;
@@ -132,8 +148,8 @@ function connect(first){
   else if(m.t==='master'){master=true;$('mbtn').classList.remove('h');toast('You are now the host')}
   else if(m.t==='err'){toast(m.m);if(m.x){mine.onclose=null;mine.close();ws=null;if(mode==='on')leave()}}};
  mine.onclose=()=>{ws=null;if(mode==='on'){toast('Disconnected');leave()}else toast('Could not reach the server')}}
-$('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick})};
-$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1});
+$('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick,ch:ck})};
+$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:ck});
 const cmd=(c,o)=>send(Object.assign({t:'cmd',c},o));
 $('c-start').onclick=()=>cmd('start');$('c-pause').onclick=()=>cmd('pause');$('c-stop').onclick=()=>cmd('stop');$('c-ai').onclick=()=>cmd('ai');$('c-dmg').onclick=()=>cmd('dmg');
 $('ros').onclick=e=>{const s=e.target.dataset.slot;if(s!==undefined)cmd('kick',{slot:+s})};
@@ -170,6 +186,7 @@ const sndBtn=()=>{$('snd').textContent=muted?'Muted':'Sound'};sndBtn();
 $('snd').onclick=()=>{muted=!muted;LS('rms',muted?'1':'0');sndBtn()};
 /* ---- snapshots to effects ---- */
 function ingest(s){const pv=snap;snap=s;
+ if(pv&&pv.p!=='end'&&s.p==='end'&&me>=0&&s.f[me])reward(!s.f[me].ko&&!s.f[me].off);
  for(const e of s.e){
   if(e.e==='p'){const n=e.n||8;for(let i=0;i<n;i++){const a=Math.random()*TAU,v=(e.sp||200)*(.3+Math.random());FX.push({t:'p',x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.35,L:.35,c:e.c})}
    if(!e.sp)FX.push({t:'r',x:e.x,y:e.y,l:.28,L:.28,c:e.c})}
@@ -198,7 +215,7 @@ function drawF(f,d,i){
  if(i===me&&!f.ko){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.lineDashOffset=-performance.now()/120;ctx.beginPath();ctx.arc(0,0,25,0,TAU);ctx.stroke();ctx.setLineDash([])}
  if(f.sl&&!f.ko){ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,19,0,TAU);ctx.stroke()}
  ctx.rotate(f.a);ctx.globalAlpha=f.ko?.4:f.iv?.55:f.st?.75:1;
- const kick=def&&(f.k==='kyo'||(f.k==='mt'&&at.d==='L')),hr=f.k==='box'?6.5:5,gl=f.k==='box'?'#dc2626':'#e8c9a8';
+ const kick=def&&(s.b==='kyo'||(s.b==='mt'&&at.d==='L')),hr=s.b==='box'?6.5:5,gl=s.b==='box'?'#dc2626':'#e8c9a8';
  for(const sd of[-1,1]){const on=def&&sd===at.l;let rx=11,ry=sd*9;
   if(def&&def.ring){rx=14+8*p;ry=sd*(9+8*p)}else if(on){rx=11+(def.rng-20)*p;ry=sd*9*(1-.7*p)}
   if(on&&kick){ctx.strokeStyle='#e8c9a8';ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(6,sd*6);ctx.lineTo(rx,ry);ctx.stroke()}
@@ -207,7 +224,7 @@ function drawF(f,d,i){
  ctx.fillStyle='#fff3';ctx.beginPath();ctx.arc(-3,-4,8,0,TAU);ctx.fill();
  ctx.fillStyle=s.hair;ctx.beginPath();ctx.arc(1,0,7.5,0,TAU);ctx.fill();
  ctx.strokeStyle=s.band;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(1,0,7.5,-1.4,1.4);ctx.stroke();
- if(f.g>=0){ctx.shadowColor='#8ecbff';ctx.shadowBlur=10;ctx.strokeStyle=f.k==='tai'&&f.g<.3?'#fff':'#8ecbff';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.arc(0,0,23,-1.2,1.2);ctx.stroke();ctx.shadowBlur=0}
+ if(f.g>=0){ctx.shadowColor='#8ecbff';ctx.shadowBlur=10;ctx.strokeStyle=s.b==='tai'&&f.g<.3?'#fff':'#8ecbff';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.arc(0,0,23,-1.2,1.2);ctx.stroke();ctx.shadowBlur=0}
  ctx.restore();
  if(!f.ko){ctx.font='800 12px system-ui';ctx.textAlign='center';const tw=ctx.measureText(f.n).width+12;
   rr(d.x-tw/2,d.y-42,tw,16,8);ctx.fillStyle='#000a';ctx.fill();ctx.fillStyle=s.c;ctx.fillText(f.n,d.x,d.y-30);
