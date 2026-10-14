@@ -49,6 +49,17 @@ input[type=password]{text-transform:none}
 .b[data-k=heavy]{right:98px;bottom:12px;width:68px;height:68px;border-color:#ffd27a99;color:#ffd27a}
 .b[data-k=guard]{right:10px;bottom:100px;width:68px;height:68px;border-color:#8ecbff99;color:#8ecbff}
 .b[data-k=dash]{right:92px;bottom:96px;width:58px;height:58px;overflow:hidden;background:conic-gradient(#000b calc(var(--p,0)*360deg),#ffffff12 0)}
+h2{margin:0;font:800 26px Georgia,serif}
+.nav{display:flex;flex-direction:column;gap:10px;width:min(320px,100%)}
+.big{padding:15px;font-size:17px;font-weight:800}
+.st{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left}
+.st input[type=checkbox]{width:24px;height:24px}.st input[type=range]{width:150px}
+.st select{background:#150f0b;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+.pan.t{align-items:flex-start;text-align:left;line-height:1.5;font-weight:500;color:var(--mut)}
+body.hc canvas{filter:contrast(1.25) saturate(1.3)}body.hc .card,body.hc .ghost,body.hc .pan{border-color:#fff}body.hc .sub,body.hc .pan.t{color:#fff}
+#btns{transform:scale(var(--bs,1));transform-origin:bottom right}
+.lh #zone{left:auto;right:0}.lh #hint{left:auto;right:34px}.lh #btns{right:auto;left:10px;transform-origin:bottom left}
+.lh .b[data-k=light]{right:auto;left:0}.lh .b[data-k=heavy]{right:auto;left:98px}.lh .b[data-k=guard]{right:auto;left:10px}.lh .b[data-k=dash]{right:auto;left:92px}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -63,8 +74,15 @@ input[type=password]{text-transform:none}
 <div id="lob" class="h"><div class="k">ROOM CODE</div><div id="lc"></div><div id="ls"></div>
  <div class="row"><button class="ghost" id="sh">Share code</button><button class="ghost go" id="st">Start match</button></div><div class="k" id="wt">WAITING FOR HOST</div></div>
 <div id="toast" class="h"></div>
-<div id="menu" class="ov">
- <h1>Martial RUMBLE</h1>
+<div id="home" class="ov"><h1>Martial RUMBLE</h1><p class="sub">Overhead fighting with many styles.</p>
+ <div class="nav"><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
+<div id="opt" class="ov h"><h2>Options</h2><div class="pan" id="optb"></div><p class="sub">Accounts arrive with ranked mode.</p><button class="ghost" data-go="home">Back</button></div>
+<div id="ctls" class="ov h"><h2>Controls</h2><div class="pan" id="ctlb"></div>
+ <div class="pan t"><span><b>Left thumb:</b> move.</span><span><b>Strike:</b> quick hit.</span><span><b>Heavy:</b> slow and strong.</span><span><b>Guard:</b> hold to block.</span><span><b>Dash:</b> quick dodge, brief safe moment.</span><span><b>Keyboard:</b> WASD, J, K, L, Space.</span></div><button class="ghost" data-go="home">Back</button></div>
+<div id="sup" class="ov h"><h2>Support</h2><div class="pan t" id="supb"></div><button class="ghost" data-go="home">Back</button></div>
+<div id="abt" class="ov h"><h2>About Us</h2><div class="pan t"><span>Martial RUMBLE is an overhead fighting game with many fighting styles, and more are on the way.</span><span>Version 1.2</span></div><button class="ghost" data-go="home">Back</button></div>
+<div id="menu" class="ov h">
+ <button class="ghost" data-go="home">Back</button><h2>Modes</h2>
  <p class="sub">Four fighting styles, one ring. Last fighter standing wins.</p>
  <input type="text" id="nm" maxlength="4" placeholder="NAME" autocomplete="off" autocapitalize="characters" spellcheck="false">
  <div class="grid" id="grid"></div>
@@ -96,9 +114,9 @@ pick=+LS('rmp')||0;$('nm').value=LS('rmn')||'';
 $('grid').innerHTML=Rumble.ORDER.map((k,i)=>{const t=S[k];return `<button class="card${i===pick?' sel':''}" data-s="${i}" style="--c:${t.c}"><b>${t.n}</b><span>${TG[k]}</span><i><u style="width:${t.hp/1.25}%"></u></i><i><u style="width:${t.sp/1.72}%"></u></i><i><u style="width:${PW[k]*100}%"></u></i></button>`}).join('');
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{pick=+b.dataset.s;buzz(6);document.querySelectorAll('[data-s]').forEach(c=>c.classList.toggle('sel',c===b))});
 /* ---- state flow ---- */
-function enter(){LS('rmn',nm());LS('rmp',pick);$('menu').classList.add('h');ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);if(!master)$('mp').classList.add('h')}
+function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);if(!master)$('mp').classList.add('h')}
 function leave(){if(ws){ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
- $('menu').classList.remove('h');for(const i of['quit','snd','mbtn','mp','lob'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
+ show('home');for(const i of['quit','snd','mbtn','mp','lob'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
 $('pr').onclick=()=>{sim=createSim();me=pick;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
 function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m))}
@@ -131,7 +149,21 @@ function mpUpdate(){if(mode!=='on'||!snap)return;const now=performance.now();if(
  $('c-pause').textContent=snap.pa?'Resume':'Pause';$('c-ai').textContent='AI fill: '+(snap.ai?'on':'off');$('c-dmg').textContent='Damage x'+snap.dm}
 /* ---- sound + haptics ---- */
 let AC=null,muted=LS('rms')==='1',banner=null,dashAt=-1e4;
-const buzz=n=>{try{navigator.vibrate&&navigator.vibrate(n)}catch{}};
+let cfg=Object.assign({vol:.4,hc:0,vib:1,lh:0,bs:1},JSON.parse(LS('rmc')||'{}'));
+const buzz=n=>{if(!cfg.vib)return;try{navigator.vibrate&&navigator.vibrate(n)}catch{}};
+function show(id){document.querySelectorAll('.ov').forEach(o=>o.classList.toggle('h',o.id!==id))}
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{buzz(6);show(b.dataset.go)});
+$('qp').onclick=()=>$('pr').click();
+const SU=window.RUMBLE_SUPPORT;
+$('supb').innerHTML='<b>Having trouble?</b><span>"Could not reach the server": the free server sleeps. Open the game website once, wait a minute, then try again.</span><span>Online rooms use a 4-letter code. The host shares it from the lobby.</span>'+(SU?'<span>Contact: '+SU+'</span>':'<span>Support contact coming soon.</span>');
+function apply(){document.body.classList.toggle('hc',!!cfg.hc);ctl.classList.toggle('lh',!!cfg.lh);document.documentElement.style.setProperty('--bs',cfg.bs)}
+function rows(el,D){D.forEach(([l,t,g,st,o])=>{const r=document.createElement('label'),sp=document.createElement('span');r.className='st';sp.textContent=l;let i;
+ if(t==='s'){i=document.createElement('select');o.forEach(([v,n])=>{const e=document.createElement('option');e.value=v;e.textContent=n;i.appendChild(e)});i.value=g()}
+ else{i=document.createElement('input');i.type=t==='c'?'checkbox':'range';if(t==='r'){i.min=0;i.max=100;i.value=g()}else i.checked=!!g()}
+ i.onchange=i.oninput=()=>{st(t==='c'?i.checked:+i.value);LS('rmc',JSON.stringify(cfg));apply()};r.append(sp,i);el.appendChild(r)})}
+rows($('optb'),[['Sound and music','c',()=>!muted,v=>{muted=!v;LS('rms',muted?'1':'0');sndBtn()}],['Music volume','r',()=>cfg.vol*100,v=>cfg.vol=v/100],['High contrast','c',()=>cfg.hc,v=>cfg.hc=+v]]);
+rows($('ctlb'),[['Left-handed layout','c',()=>cfg.lh,v=>cfg.lh=+v],['Button size','s',()=>cfg.bs,v=>cfg.bs=+v,[[.85,'Small'],[1,'Medium'],[1.15,'Large']]],['Vibration','c',()=>cfg.vib,v=>cfg.vib=+v]]);
+apply();
 function snd(f,d,ty,v){if(muted||!AC)return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=ty||'square';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(40,t+d);g.gain.setValueAtTime(v||.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch{}}
 addEventListener('pointerdown',()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()}catch{}});
 const sndBtn=()=>{$('snd').textContent=muted?'Muted':'Sound'};sndBtn();
@@ -250,4 +282,5 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
  if(KM[e.code]){K[KM[e.code]]=1;e.preventDefault()}
  else if(KA[e.code]){e.preventDefault();if(!e.repeat)press(KA[e.code],true)}});
 addEventListener('keyup',e=>{if(KM[e.code])K[KM[e.code]]=0});
-</script></body></html>
+</script><script src="music.js"></script>
+</body></html>
