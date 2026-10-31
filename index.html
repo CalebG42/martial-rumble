@@ -101,6 +101,10 @@ h1{font-size:34px}h2{font-size:22px}
 #hint{left:calc(env(safe-area-inset-left,0px) + 34px);width:calc(96px*var(--au,1));height:calc(96px*var(--au,1))}
 #btns{right:calc(env(safe-area-inset-right,0px) + 10px)}
 }
+#dvt{position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);left:calc(50% + 90px);z-index:3;padding:4px 10px;font-size:12px;border-radius:8px;border-color:#ffd84d;color:#ffd84d}
+#dvg{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 36px);transform:translateX(-50%);width:min(440px,72vw);z-index:4;background:rgba(11,16,32,.93);border:1px solid #ffd84d;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}
+#dvi{font:600 11px/1.45 ui-monospace,Menlo,monospace;white-space:pre;color:#ffd84d;text-align:left;overflow:hidden}
+#dvg .ghost{padding:5px 8px;font-size:12px}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -114,6 +118,8 @@ h1{font-size:34px}h2{font-size:22px}
 </div>
 <div id="lob" class="h"><div class="k">ROOM CODE</div><div id="lc"></div><div id="ls"></div>
  <div class="row"><button class="ghost" id="sh">Share code</button><button class="ghost go" id="st">Start match</button></div><div class="k" id="wt">WAITING FOR HOST</div></div>
+<button id="dvt" class="ghost h">Dev</button>
+<div id="dvg" class="h"><div id="dvi"></div><div class="row"><button class="ghost" data-d="self">My hero &#9656;</button><button class="ghost" data-d="slot">Slot: 2</button><button class="ghost" data-d="opp">Slot hero &#9656;</button></div><div class="row"><button class="ghost" data-d="heal">Heal</button><button class="ghost" data-d="rs">Restart</button><button class="ghost" data-d="dm">Dummy</button><button class="ghost" data-d="x">Close</button></div></div>
 <div id="toast" class="h"></div>
 <div id="rot"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><div>Rotate your phone<br>to play</div></div>
 <div id="home" class="ov"><h1>Martial RUMBLE</h1><canvas id="hero" width="300" height="260"></canvas><p class="sub">Overhead fighting with many styles.</p>
@@ -123,7 +129,8 @@ h1{font-size:34px}h2{font-size:22px}
  <div class="pan t"><span><b>Left thumb:</b> move.</span><span><b>Strike:</b> quick hit.</span><span><b>Heavy:</b> slow and strong.</span><span><b>Guard:</b> hold to block.</span><span><b>Dash:</b> quick dodge, brief safe moment.</span><span><b>Keyboard:</b> WASD, J, K, L, Space.</span></div><button class="ghost" data-go="home">Back</button></div>
 <div id="sup" class="ov h"><h2>Support</h2><div class="pan t" id="supb"></div><button class="ghost" data-go="home">Back</button></div>
 <div id="abt" class="ov h"><h2>About Us</h2><div class="pan t"><span>Martial RUMBLE is an overhead fighting game with many fighting styles, and more are on the way.</span><span>Version 1.2</span></div><button class="ghost" data-go="home">Back</button></div>
-<div id="chr" class="ov h"><h2>Characters</h2><div class="pan"><div class="st"><b id="lv"></b><b id="cn"></b></div><i class="xpb"><u id="xpu"></u></i></div><div class="grid" id="grid"></div><p class="sub">Win rounds to earn XP and coins, then unlock fighters.</p><button class="ghost" data-go="home">Back</button></div>
+<div id="devp" class="ov h"><h2>Developer</h2><p class="sub" id="dst"></p><input type="password" id="dkey" placeholder="Developer key" autocomplete="off" style="width:220px"><div class="row"><button class="ghost go" id="dvv">Unlock</button><button class="ghost dvx">Turn off</button></div><button class="ghost" data-go="home">Back</button></div>
+<div id="chr" class="ov h"><h2>Characters</h2><div class="pan"><div class="st"><b id="lv"></b><b id="cn"></b></div><i class="xpb"><u id="xpu"></u></i></div><div class="pan h" id="dvb"><b style="color:#ffd84d">DEVELOPER MODE</b><span class="sub">All heroes can be selected for testing. Your unlocks, XP, coins and saved hero are not changed, and test matches earn nothing.</span><button class="ghost dvx">Turn off</button></div><div class="grid" id="grid"></div><p class="sub">Win rounds to earn XP and coins, then unlock fighters.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="menu" class="ov h">
  <button class="ghost" data-go="home">Back</button><h2>Modes</h2>
  <p class="sub">Four fighting styles, one ring. Last fighter standing wins.</p>
@@ -156,28 +163,32 @@ const LS=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.s
 const PW={kyo:.95,box:.6,tai:.45,mt:.75},TG={kyo:'Heavy karate',box:'Fast hands',tai:'Parry and push',mt:'Knees and clinch'};
 const LOOK={ken:{skin:'#f2c9a0',hair:'#17130f',st:'spiky',hb:1},bob:{skin:'#a9714b',hair:'#120d0a',st:'short'},susie:{skin:'#f6d6b8',hair:'#1a1220',st:'pony'},tom:{skin:'#d9a066',hair:'#1c120a',st:'short',hb:1},guyou:{skin:'#ebc7a0',hair:'#2b1b3a',st:'topknot',sam:1},tanya:{skin:'#f3d2b3',hair:'#6b2142',st:'buns'},rugof:{skin:'#c88f65',hair:'#0f2b2a',st:'mohawk'}};
 Object.assign(LOOK,{kyo:LOOK.ken,box:LOOK.bob,tai:LOOK.susie,mt:LOOK.tom});for(const k in LOOK)Object.assign(S[k],LOOK[k]);
+const SS=(k,v)=>{try{return v===undefined?sessionStorage.getItem(k):sessionStorage.setItem(k,v)}catch{}};
+let DT=SS('rdt')||'',DEV=!!DT,dk=DEV?(SS('rdk')||''):'';
+const cur=()=>DEV&&dk&&S[dk]?dk:ck;
 pick=0;$('nm').value=LS('rmn')||'';
 const SOON=['Meso','Beta Z','Xion','ABF 10'],CHARS=['ken','bob','susie','tom','guyou','tanya','rugof'],COST={tom:150,guyou:300,tanya:300,rugof:400};
 let PRG=Object.assign({xp:0,coins:0,un:['ken','bob','susie']},JSON.parse(LS('rmpr')||'{}')),ck=LS('rmk')||'ken';
 if(!PRG.un.includes(ck))ck='ken';
 const savePrg=()=>LS('rmpr',JSON.stringify(PRG));
 function cards(){const bar=w=>`<i><u style="width:${Math.min(100,w)}%"></u></i>`;
- $('grid').innerHTML=CHARS.map(k=>{const t=S[k],lk=!PRG.un.includes(k);return `<button class="card${k===ck?' sel':''}${lk?' lk':''}" data-c="${k}" style="--c:${t.c}"><img src="${portrait(k)}"><b>${t.n}</b><span>${lk?COST[k]+' coins':t.t}</span>${bar(t.hp/1.5)}${bar(t.sp/1.95)}${bar(PW[t.b]*(t.dm||1)*100)}</button>`}).join('')+SOON.map(n=>`<div class="card lk" style="--c:#666"><b>${n}</b><span>Coming soon</span></div>`).join('');
+ $('grid').innerHTML=CHARS.map(k=>{const t=S[k],lk0=!PRG.un.includes(k),lk=lk0&&!DEV;return `<button class="card${k===cur()?' sel':''}${lk?' lk':''}" data-c="${k}" style="--c:${t.c}"><img src="${portrait(k)}"><b>${t.n}</b><span>${lk?COST[k]+' coins':(lk0?'DEV TEST':t.t)}</span>${bar(t.hp/1.5)}${bar(t.sp/1.95)}${bar(PW[t.b]*(t.dm||1)*100)}</button>`}).join('')+SOON.map(n=>`<div class="card lk" style="--c:#666"><b>${n}</b><span>Coming soon</span></div>`).join('');
  $('grid').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=b.dataset.c;buzz(6);
-  if(PRG.un.includes(k)){ck=k;LS('rmk',k)}
+  if(DEV){dk=k;SS('rdk',k)}
+  else if(PRG.un.includes(k)){ck=k;LS('rmk',k)}
   else if(PRG.coins<COST[k])toast('Need '+(COST[k]-PRG.coins)+' more coins');
   else{PRG.coins-=COST[k];PRG.un.push(k);ck=k;LS('rmk',k);savePrg();toast(S[k].n+' unlocked!')}
   cards()});
  $('lv').textContent='Level '+(1+Math.floor(PRG.xp/200));$('cn').textContent=PRG.coins+' coins';$('xpu').style.width=(PRG.xp%200)/2+'%';
- $('chb').textContent='Fighter: '+S[ck].n+'  (change)'}
-function reward(w){const x=w?60:20,c=w?40:10;PRG.xp+=x;PRG.coins+=c;savePrg();toast((w?'Victory! ':'')+'+'+x+' XP, +'+c+' coins');cards()}
+ $('chb').textContent='Fighter: '+S[cur()].n+(DEV&&dk?' [DEV]':'')+'  (change)'}
+function reward(w){if(DEV)return;const x=w?60:20,c=w?40:10;PRG.xp+=x;PRG.coins+=c;savePrg();toast((w?'Victory! ':'')+'+'+x+' XP, +'+c+' coins');cards()}
 cards();
 /* ---- state flow ---- */
-function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);if(!master)$('mp').classList.add('h')}
+function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);$('dvt').classList.toggle('h',!DEV);if(!master)$('mp').classList.add('h')}
 function leave(){if(ws){ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
- show('home');for(const i of['quit','snd','mbtn','mp','lob'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
+ show('home');for(const i of['quit','snd','mbtn','mp','lob','dvt','dvg'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
-$('pr').onclick=()=>{sim=createSim();me=pick;sim.setChar(me,ck);sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
+$('pr').onclick=()=>{sim=createSim();me=pick;sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
 function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m))}
 function connect(first){
  if(ws)return;
@@ -187,12 +198,12 @@ function connect(first){
  mine.onopen=()=>mine.send(JSON.stringify(first));
  mine.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}
   if(m.t==='s'){if(mode==='on')ingest(m)}
-  else if(m.t==='joined'){me=m.slot;master=m.master;code=m.code;mode='on';enter();if(me<0&&!master)toast('Room is full, you are watching')}
+  else if(m.t==='joined'){if(DEV&&!m.dev){devOff();ws.close();toast('Dev session expired. Enter the key again.');return}me=m.slot;master=m.master;code=m.code;mode='on';enter();if(me<0&&!master)toast('Room is full, you are watching')}
   else if(m.t==='master'){master=true;$('mbtn').classList.remove('h');toast('You are now the host')}
   else if(m.t==='err'){toast(m.m);if(m.x){mine.onclose=null;mine.close();ws=null;if(mode==='on')leave()}}};
  mine.onclose=()=>{ws=null;if(mode==='on'){toast('Disconnected');leave()}else toast('Could not reach the server')}}
-$('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick,ch:ck})};
-$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:ck});
+$('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick,ch:cur(),dt:DT})};
+$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:cur(),dt:DT});
 const cmd=(c,o)=>send(Object.assign({t:'cmd',c},o));
 $('c-start').onclick=()=>cmd('start');$('c-pause').onclick=()=>cmd('pause');$('c-stop').onclick=()=>cmd('stop');$('c-ai').onclick=()=>cmd('ai');$('c-dmg').onclick=()=>cmd('dmg');
 $('ros').onclick=e=>{const s=e.target.dataset.slot;if(s!==undefined)cmd('kick',{slot:+s})};
@@ -446,5 +457,29 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
  if(KM[e.code]){K[KM[e.code]]=1;e.preventDefault()}
  else if(KA[e.code]){e.preventDefault();if(!e.repeat)press(KA[e.code],true)}});
 addEventListener('keyup',e=>{if(KM[e.code])K[KM[e.code]]=0});
+
+/* ---- developer hero test mode (server needs DEV_KEY) ---- */
+function devUI(){$('dvb').classList.toggle('h',!DEV);$('dvt').classList.toggle('h',!DEV||mode==='menu');if(!DEV)$('dvg').classList.add('h');cards()}
+function devOff(){DT='';DEV=false;dk='';SS('rdt','');SS('rdk','');devUI()}
+let tapN=0,tapT=0,TS=1;
+document.querySelector('#home h1').onclick=()=>{const n=performance.now();tapN=n-tapT<3000?tapN+1:1;tapT=n;if(tapN>=7){tapN=0;$('dst').textContent=DEV?'Developer mode is ON':'Enter the developer key';show('devp')}};
+$('dvv').onclick=async()=>{const k=$('dkey').value;if(!k)return;$('dst').textContent='Checking...';
+ try{const r=await fetch((window.RUMBLE_SERVER||'').replace(/\/$/,'')+'/dev/verify',{method:'POST',headers:{'Content-Type':'text/plain'},body:k});
+  if(r.status===200){const j=await r.json();DT=j.t;DEV=true;SS('rdt',DT);$('dkey').value='';$('dst').textContent='Developer mode is ON. Open Characters to pick any hero.';devUI()}
+  else $('dst').textContent=r.status===404?'Developer mode is disabled on this server':r.status===429?'Too many tries. Wait a minute.':'Wrong key'}
+ catch{$('dst').textContent='Could not reach the server'}};
+document.querySelectorAll('.dvx').forEach(b=>b.onclick=()=>{devOff();$('dst').textContent='Developer mode is OFF'});
+$('dvt').onclick=()=>$('dvg').classList.toggle('h');
+const HL=['ken','bob','susie','tom','guyou','tanya','rugof'],nxt=k=>HL[(HL.indexOf(k)+1)%HL.length];
+document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const a=b.dataset.d,off=mode==='off';if(!DEV||!snap)return;
+ if(a==='x')return $('dvg').classList.add('h');
+ if(a==='slot'){TS=TS%3+1;b.textContent='Slot: '+(TS+1);return}
+ if(a==='self'){if(me<0)return;const k=nxt(snap.f[me].k);dk=k;SS('rdk',k);if(off){sim.setChar(me,k);sim.start()}else send({t:'dself',ch:k});toast('Your hero: '+S[k].n+(off?'':' (next round)'));cards();return}
+ if(a==='opp'){const k=nxt(snap.f[TS].k);if(off){sim.setChar(TS,k);sim.start()}else cmd('dchar',{slot:TS,ch:k});toast('Slot '+(TS+1)+': '+S[k].n+(off?'':' (next round, host only)'));return}
+ if(a==='heal'){if(off)sim.heal();else cmd('dheal');return}
+ if(a==='rs'){if(off)sim.start();else cmd('start');return}
+ if(a==='dm'){if(off)sim.dummy[TS]^=1;else cmd('ddummy',{slot:TS});toast('Dummy toggled for slot '+(TS+1))}});
+setInterval(()=>{if(!DEV||$('dvg').classList.contains('h')||!snap)return;const i=me>=0?me:0,f=snap.f[i],o=snap.f[TS];if(!f||!o)return;const s=S[f.k],a=f.at;
+ $('dvi').textContent=s.n+' ('+s.b+')  slot '+(i+1)+'\nHP '+f.hp+'/'+f.mx+'  speed '+s.sp+'  dmg x'+(s.dm||1).toFixed(2)+'  room x'+snap.dm+'\nmove: '+(a?a.d+' '+(+a.t).toFixed(2):'idle')+'  guard: '+(f.g>=0?'on':'off')+'  dash-safe: '+(f.iv?'yes':'no')+'\nspecials: not built yet\nopp slot '+(TS+1)+': '+S[o.k].n+(snap.dz&&snap.dz[TS]?' (dummy)':'')+'  '+(mode==='on'?'room '+code:'offline')},200);
 </script><script src="music.js"></script>
 </body></html>
