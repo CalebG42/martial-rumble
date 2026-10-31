@@ -93,7 +93,7 @@ wss.on('connection',ws=>{
     join(ws,room,clean(m.name),want,String(m.ch||''))}
    return}
   if(m.t==='in'&&ws.slot>=0)r.sim.input(ws.slot,+m.x||0,+m.y||0,!!m.g);
-  else if(m.t==='b'&&ws.slot>=0&&['light','heavy','dash'].includes(m.k))r.sim.press(ws.slot,m.k);
+  else if(m.t==='b'&&ws.slot>=0&&['light','heavy','dash','special'].includes(m.k))r.sim.press(ws.slot,m.k);
   else if(m.t==='dself'&&ws.dev&&ws.slot>=0)r.sim.setChar(ws.slot,String(m.ch||''));
   else if(m.t==='cmd')command(ws,r,m)})});
 
