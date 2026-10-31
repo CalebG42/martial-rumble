@@ -146,7 +146,7 @@ h1{font-size:34px}h2{font-size:22px}
 <script src="config.js"></script>
 <script src="sim.js"></script>
 <script>
-const {S,createSim}=Rumble,TAU=Math.PI*2,R=280;
+const {S,createSim}=Rumble,TAU=Math.PI*2,R=280,T=.62,FS=1.35,OL='#1b0f0a';
 const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),ctl=$('ctl');
 let W,H,DPR,sc,cx,cy,SAT=0,SAL=0,SAR=0,snap=null,V=[],FX=[],TX=[],shake=0,me=-1,master=false,code='',ws=null,sim=null,mode='menu',pick=0,last=0,sentAt=0,lastIn='',mpT=0,mpHtml='';
 const IN={mx:0,my:0,guard:false},K={};
@@ -305,7 +305,6 @@ document.querySelectorAll('.b').forEach(b=>{b.innerHTML=IC[b.dataset.k]+'<small>
 /* ---- drawing ---- */
 function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
 /* ---- standing fighters, tilted view ---- */
-const T=.62,FS=1.35,OL='#1b0f0a';
 function rrp(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h)}
 function ln(c,P,w,col){c.lineCap='round';c.lineJoin='round';c.strokeStyle=OL;c.lineWidth=w+3;c.beginPath();c.moveTo(P[0],P[1]);for(let i=2;i<P.length;i+=2)c.lineTo(P[i],P[i+1]);c.stroke();c.strokeStyle=col;c.lineWidth=w;c.stroke()}
 function bone(c,sx,sy,hx,hy,L,col,w,fw){let dx=hx-sx,dy=hy-sy,D=Math.hypot(dx,dy)||1;const d=Math.min(D,2*L-.2),ux=dx/D,uy=dy/D;hx=sx+ux*d;hy=sy+uy*d;
