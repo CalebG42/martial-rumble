@@ -112,6 +112,9 @@ h1{font-size:34px}h2{font-size:22px}
 .b[data-k=special].ready{box-shadow:0 0 16px #c4b5fd;border-color:#c4b5fd}
 .lh .b[data-k=special]{right:auto;left:170px}
 .card .ab{color:#ffd84d;font-size:11px}
+#lost{position:fixed;inset:0;z-index:7;background:rgba(5,8,20,.72);display:flex;align-items:center;justify-content:center}
+#lost .pan{width:min(300px,86vw);align-items:center;text-align:center}
+#rjb{grid-column:1/3}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -128,10 +131,11 @@ h1{font-size:34px}h2{font-size:22px}
 <button id="dvt" class="ghost h">Dev</button>
 <div id="dvg" class="h"><div id="dvi"></div><div class="row"><button class="ghost" data-d="self">My hero &#9656;</button><button class="ghost" data-d="slot">Slot: 2</button><button class="ghost" data-d="opp">Slot hero &#9656;</button></div><div class="row"><button class="ghost" data-d="heal">Heal</button><button class="ghost" data-d="rs">Restart</button><button class="ghost" data-d="dm">Dummy</button><button class="ghost" data-d="x">Close</button></div></div>
 <div id="res" class="h"><h2 id="rt"></h2><p class="sub" id="rm"></p><div class="pan" id="rb"></div><div class="row"><button class="ghost go" id="rr">Rematch</button><button class="ghost" id="rl">Leave</button></div><p class="sub h" id="rw">Waiting for the host to start a rematch</p></div>
+<div id="lost" class="h"><div class="pan"><b>Connection lost</b><span class="sub" id="lostn">Reconnecting...</span><button class="ghost" id="lostl">Leave match</button></div></div>
 <div id="toast" class="h"></div>
 <div id="rot"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><div>Rotate your phone<br>to play</div></div>
 <div id="home" class="ov"><h1>Martial RUMBLE</h1><canvas id="hero" width="300" height="260"></canvas><p class="sub">Overhead fighting with many styles.</p>
- <div class="nav"><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="chr">Characters</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
+ <div class="nav"><button class="ghost go big h" id="rjb"></button><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="chr">Characters</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
 <div id="opt" class="ov h"><h2>Options</h2><div class="pan" id="optb"></div><p class="sub">Accounts arrive with ranked mode.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="ctls" class="ov h"><h2>Controls</h2><div class="pan" id="ctlb"></div>
  <div class="pan t"><span><b>Left thumb:</b> move.</span><span><b>Strike:</b> quick hit.</span><span><b>Heavy:</b> slow and strong.</span><span><b>Guard:</b> hold to block.</span><span><b>Dash:</b> quick dodge, brief safe moment.</span><span><b>Keyboard:</b> WASD, J, K, L, Space.</span></div><button class="ghost" data-go="home">Back</button></div>
@@ -193,7 +197,7 @@ function reward(w,match){if(DEV)return;const x=match?(w?100:30):(w?15:5),c=match
 cards();
 /* ---- state flow ---- */
 function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);$('dvt').classList.toggle('h',!DEV);if(!master)$('mp').classList.add('h')}
-function leave(){if(ws){ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
+function leave(){clearTimeout(rjT);lost(false);RJ=null;LS('rrj','');if(ws){try{if(ws.readyState===1)ws.send('{"t":"bye"}')}catch{}ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
  show('home');for(const i of['quit','snd','mbtn','mp','lob','dvt','dvg','res'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
 $('pr').onclick=()=>{sim=createSim();me=pick;sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
@@ -205,11 +209,11 @@ function connect(first){
  const mine=ws;
  mine.onopen=()=>mine.send(JSON.stringify(first));
  mine.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}
-  if(m.t==='s'){if(mode==='on')ingest(m)}
-  else if(m.t==='joined'){if(DEV&&!m.dev){devOff();ws.close();toast('Dev session expired. Enter the key again.');return}me=m.slot;master=m.master;code=m.code;mode='on';enter();if(me<0&&!master)toast('Room is full, you are watching')}
+  if(m.t==='s'){if(mode==='on'){lastS=performance.now();ingest(m)}}
+  else if(m.t==='joined'){if(DEV&&!m.dev){devOff();ws.close();toast('Dev session expired. Enter the key again.');return}if(m.tok){RJ={code:m.code,tok:m.tok};LS('rrj',JSON.stringify({code:m.code,tok:m.tok,t:Date.now()}))}if(m.re){lost(false);rjN=0;toast('Reconnected')}lastS=performance.now();me=m.slot;master=m.master;code=m.code;mode='on';enter();if(me<0&&!master)toast('Room is full, you are watching')}
   else if(m.t==='master'){master=true;$('mbtn').classList.remove('h');toast('You are now the host')}
-  else if(m.t==='err'){toast(m.m);if(m.x){mine.onclose=null;mine.close();ws=null;if(mode==='on')leave()}}};
- mine.onclose=()=>{ws=null;if(mode==='on'){toast('Disconnected');leave()}else toast('Could not reach the server')}}
+  else if(m.t==='err'){toast(m.m);if(m.x){mine.onclose=null;mine.close();ws=null;LS('rrj','');RJ=null;if(mode==='on')leave();else lost(false)}}};
+ mine.onclose=()=>{if(ws===mine)connLost()}}
 $('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick,ch:cur(),dt:DT})};
 $('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:cur(),dt:DT});
 const cmd=(c,o)=>send(Object.assign({t:'cmd',c},o));
@@ -397,7 +401,7 @@ function hud(){const cw0=Math.max(110,Math.min(170,(W-2*R*sc)/2-18)),SY=SAT+8;ct
   rr(x,y,cw,46,9);ctx.fillStyle=i===me?'#ffffff20':'#ffffff0e';ctx.fill();
   if(i===me){ctx.strokeStyle=s.c;ctx.lineWidth=1.5;ctx.stroke()}
   ctx.save();rr(x+5,y+4,22,22,6);ctx.clip();ctx.drawImage(pimg(f.k),x+5,y+4,22,22);ctx.restore();ctx.fillStyle=f.off?'#555':s.c;
-  ctx.font='800 12px system-ui';ctx.fillText(f.off?'-':f.n,x+33,y+17);
+  ctx.font='800 12px system-ui';ctx.fillText(f.off?'-':f.n+(f.aw?' (away)':''),x+33,y+17);
   ctx.font='500 10px system-ui';ctx.fillStyle='#a39786';ctx.fillText(s.n+(snap.w[i]?'  \u2605'+snap.w[i]:''),x+33,y+28);
   rr(x+8,y+33,bw,7,3.5);ctx.fillStyle='#0009';ctx.fill();
   if(!f.off){if(d){rr(x+8,y+33,Math.max(0,bw*d.gh/f.mx),7,3.5);ctx.fillStyle='#fff9';ctx.fill()}
@@ -472,6 +476,25 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
 addEventListener('keyup',e=>{if(KM[e.code])K[KM[e.code]]=0});
 
 
+
+/* ---- reconnect and rejoin (server keeps a dropped player's seat for 60s; the CPU plays meanwhile) ---- */
+let RJ=null,rjT=0,rjN=0,lostOn=false,lastS=0;
+function savedRJ(){try{const j=JSON.parse(LS('rrj')||'null');return j&&j.tok&&Date.now()-j.t<55000?j:null}catch{return null}}
+function lost(on){lostOn=on;$('lost').classList.toggle('h',!on)}
+function tryRejoin(){if(!lostOn)return;if(!RJ||++rjN>28){toast('Could not reconnect');leave();return}$('lostn').textContent='Reconnecting... ('+rjN+')';connect({t:'rejoin',code:RJ.code,tok:RJ.tok,dt:DT})}
+function connLost(){ws=null;
+ if(mode==='on'&&RJ){if(!lostOn){lost(true);rjN=0}clearTimeout(rjT);rjT=setTimeout(tryRejoin,rjN?1500:300)}
+ else if(mode==='on'){toast('Disconnected');leave()}
+ else toast('Could not reach the server')}
+function dropConn(){const w=ws;if(!w)return;w.onclose=null;try{w.close()}catch{}connLost()}
+$('lostl').onclick=()=>leave();
+$('rjb').onclick=()=>{const j=savedRJ();if(!j)return;RJ={code:j.code,tok:j.tok};connect({t:'rejoin',code:j.code,tok:j.tok,dt:DT})};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&mode==='on'&&ws&&ws.readyState!==1)dropConn()});
+addEventListener('online',()=>{if(lostOn){clearTimeout(rjT);rjT=setTimeout(tryRejoin,200)}});
+setInterval(()=>{const j=savedRJ();
+ $('rjb').classList.toggle('h',!(j&&mode==='menu'&&!$('home').classList.contains('h')));if(j)$('rjb').textContent='Rejoin room '+j.code;
+ if(mode==='on'&&ws&&RJ&&ws.readyState===1)LS('rrj',JSON.stringify({code:RJ.code,tok:RJ.tok,t:Date.now()}));
+ if(mode==='on'&&ws&&!lostOn&&lastS&&performance.now()-lastS>4000)dropConn()},2000);
 /* ---- match results screen ---- */
 let resKey='';
 function resUI(){const o=!!snap&&snap.p==='over';$('res').classList.toggle('h',!o);if(!o){resKey='';return}

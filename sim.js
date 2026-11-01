@@ -37,15 +37,15 @@ const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return
 const r1=v=>Math.round(v*10)/10;
 
 function createSim(){
- const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],dev:false,target:3,maxRd:7,rt:60,ft:0};
+ const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],dev:false,target:3,maxRd:7,rt:60,ft:0};
  const E=o=>sim.ev.push(o);
- const nm=i=>sim.human[i]?sim.names[i]:'CPU';
+ const nm=i=>sim.human[i]||sim.away[i]?sim.names[i]:'CPU';
  function near(f){let b=null,bd=1e9;for(const e of sim.F)if(e!==f&&!e.ko){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
  function mk(i,k){const s=S[k],a=i*TAU/4+TAU/8;
   return{i,k,s,x:Math.cos(a)*170,y:Math.sin(a)*170,vx:0,vy:0,dx:0,dy:0,face:a+Math.PI,hp:s.hp,max:s.hp,stun:0,slow:0,inv:0,dashT:0,dashCd:0,lock:0,atk:null,gT:-1,combo:0,comboT:0,clinch:null,ko:false,off:false,buf:null,bufT:0,limb:1,spCd:3,buff:0,bf:0,sa:null,in:{mx:0,my:0,guard:false},
   ai:{t:.8+Math.random(),sw:0,sd:1,gu:0,sk:.3+Math.random()*.4,ag:.7+Math.random()*.5}}}
- function build(all){sim.F=ORDER.map((_,i)=>{const f=mk(i,sim.chars[i]);if(!all&&!sim.human[i]&&!sim.aiFill)f.off=f.ko=true;return f})}
- const active=()=>ORDER.filter((k,i)=>sim.human[i]||sim.aiFill).length;
+ function build(all){sim.F=ORDER.map((_,i)=>{const f=mk(i,sim.chars[i]);if(!all&&!sim.human[i]&&!sim.away[i]&&!sim.aiFill)f.off=f.ko=true;return f})}
+ const active=()=>ORDER.filter((k,i)=>sim.human[i]||sim.away[i]||sim.aiFill).length;
  function round(){if(active()<2){sim.lobby();return}sim.rd++;sim.ft=0;build(false);sim.ph='count';sim.pt=3;sim.msg=''}
  function check(){if(sim.ph!=='fight')return;const al=sim.F.filter(f=>!f.off&&!f.ko);
   if(al.length<=1)endRound(al[0],false);
@@ -169,7 +169,7 @@ function createSim(){
   else if(sim.ph==='end'){sim.pt-=dt;if(sim.pt<=0)round()}};
  sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,dz:sim.dummy,w:sim.wins,
   f:sim.F.map(f=>({k:f.k,n:nm(f.i),h:sim.human[f.i]?1:0,x:r1(f.x),y:r1(f.y),a:Math.round(f.face*100)/100,hp:Math.round(f.hp),mx:f.max,
-   ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
+   ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),aw:sim.away[f.i]?1:0,bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
    at:f.atk?{d:f.atk.d===f.s.H?'H':'L',t:Math.round(f.atk.t*1000)/1000,l:f.limb}:0})),e:sim.ev};
   sim.ev=[];return s};
  sim.lobby();
