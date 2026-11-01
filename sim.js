@@ -57,6 +57,7 @@ function createSim(){
   if(top>=sim.target||sim.rd>=sim.maxRd){const ch=top>0&&sim.wins.filter(x=>x===top).length===1?sim.wins.indexOf(top):-1;
    sim.ph='over';sim.pt=0;sim.msg=ch>=0?nm(ch)+' wins the match!':'Match drawn'}}
  function hurt(a,v,dmg,kb,stun,slow,blk){
+  {const hv=a.atk&&a.atk.d===a.s.H;E({e:'sx',k:blk?'block':(a.s.b==='kyo'||(a.s.b==='mt'&&!hv)?'kick':'punch'),h:(hv||dmg>16)?1:0})}
   dmg*=sim.dmgM;if(v.buff>0&&v.bf==='iron'){dmg*=.4;kb*=.2;stun=0;slow=0}v.hp-=dmg;v.stun=Math.max(v.stun,stun);if(slow)v.slow=Math.max(v.slow,slow);
   const an=Math.atan2(v.y-a.y,v.x-a.x);v.vx+=Math.cos(an)*kb;v.vy+=Math.sin(an)*kb;
   if(stun>=.3){v.atk=null;v.clinch=null;v.sa=null}
@@ -72,7 +73,7 @@ function createSim(){
   const fa=Math.atan2(a.y-v.y,a.x-v.x);
   if(v.gT>=0&&Math.abs(ad(fa,v.face))<1.3){
    if(v.s.b==='tai'&&v.gT<.3){a.stun=.9;a.atk=null;a.clinch=null;a.vx+=Math.cos(fa)*380;a.vy+=Math.sin(fa)*380;v.hp=Math.min(v.max,v.hp+5);
-    E({e:'t',x:v.x,y:v.y-26,s:'Parry!',c:'#6ee7b7'});E({e:'p',x:v.x,y:v.y,c:'#6ee7b7',n:14});E({e:'sh',v:8});sim.hs=.07;return}
+    E({e:'sx',k:'block',h:1});E({e:'t',x:v.x,y:v.y-26,s:'Parry!',c:'#6ee7b7'});E({e:'p',x:v.x,y:v.y,c:'#6ee7b7',n:14});E({e:'sh',v:8});sim.hs=.07;return}
    hurt(a,v,dmg*(1-v.s.g*(d.gb||1)),kb*.3,0,0,true);return}
   hurt(a,v,dmg,kb,stun,d.slow||0);
   if(lab!==d.n||d===a.s.H)E({e:'t',x:v.x,y:v.y-34,s:lab,c:'#ffd27a'})}
@@ -94,7 +95,7 @@ function createSim(){
   else if(id==='push'){for(const e of sim.F)if(e!==f&&!e.ko&&e.inv<=0&&Math.hypot(e.x-f.x,e.y-f.y)<125)strike(f,e,8,640,.5,1.8);f.hp=Math.min(f.max,f.hp+6);E({e:'p',x:f.x,y:f.y,c:'#6ee7b7',n:18})}
   else if(id==='step'){if(!t||d>ab.r[1])return;f.x=t.x-Math.cos(t.face)*38;f.y=t.y-Math.sin(t.face)*38;clampA(f);f.face=Math.atan2(t.y-f.y,t.x-f.x);f.inv=.25;E({e:'p',x:f.x,y:f.y,c:f.s.c,n:12});strike(f,t,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
   else if(id==='slam')f.sa={id,t:0};
-  f.spCd=ab.cd;f.gT=-1;f.buf=null;E({e:'t',x:f.x,y:f.y-34,s:ab.n,c:f.s.c})}
+  E({e:'sx',k:'sp_'+id});f.spCd=ab.cd;f.gT=-1;f.buf=null;E({e:'t',x:f.x,y:f.y-34,s:ab.n,c:f.s.c})}
  function spec(f,dt){const A=f.sa,ab=f.s.ab;A.t+=dt;let m=[0,0];
   if(A.id==='lunge'||A.id==='knee'){let dx=f.dx,dy=f.dy;const t=near(f);
    if(A.id==='knee'&&t){const a=Math.atan2(t.y-f.y,t.x-f.x);dx=Math.cos(a);dy=Math.sin(a);f.face=a}
@@ -102,7 +103,7 @@ function createSim(){
    if(!A.hit)for(const e of sim.F){if(e===f||e.ko||e.inv>0)continue;if(Math.hypot(e.x-f.x,e.y-f.y)<36){A.hit=true;strike(f,e,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0);E({e:'p',x:e.x,y:e.y,c:f.s.c,n:12});break}}
    if(A.hit||A.t>=ab.t){f.sa=null;f.lock=.2}}
   else if(A.id==='slam'&&A.t>=.45){for(const e of sim.F){if(e===f||e.ko||e.inv>0)continue;if(Math.hypot(e.x-f.x,e.y-f.y)<ab.rad)strike(f,e,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
-   E({e:'p',x:f.x,y:f.y,c:'#fbbf24',n:26,sp:420});sim.hs=Math.max(sim.hs,.1);E({e:'sh',v:10});f.sa=null;f.lock=.35}
+   E({e:'sx',k:'sp_slam2'});E({e:'p',x:f.x,y:f.y,c:'#fbbf24',n:26,sp:420});sim.hs=Math.max(sim.hs,.1);E({e:'sh',v:10});f.sa=null;f.lock=.35}
   return m}
  function aiSpec(f,dt){const ab=f.s.ab,t=near(f);if(!ab||!t||f.buf||f.spCd>0||f.stun>0||f.atk||f.sa)return;const d=Math.hypot(t.x-f.x,t.y-f.y);if(d>=ab.r[0]&&d<=ab.r[1]&&Math.random()<dt*.7){f.buf='special';f.bufT=.25}}
  function upd(f,dt){
@@ -121,7 +122,7 @@ function createSim(){
    if(I.guard)f.gT=f.gT<0?0:f.gT+dt;else f.gT=-1;
    const g=f.gT>=0,sp=f.s.sp*(f.slow>0?.55:1)*(g?.5:1)*(f.buff>0&&f.bf==='od'?1.35:1);mvx=I.mx*sp;mvy=I.my*sp;
    if(f.buf&&(!g||f.buf==='dash'||f.buf==='special')){const b=f.buf;f.buf=null;
-    if(b==='dash'){if(f.dashCd<=0){f.dashT=.18;f.inv=.22;f.dashCd=.9;f.gT=-1;let dx=I.mx,dy=I.my;if(Math.hypot(dx,dy)<.2){dx=-Math.cos(f.face);dy=-Math.sin(f.face)}
+    if(b==='dash'){if(f.dashCd<=0){E({e:'sx',k:'dash'});f.dashT=.18;f.inv=.22;f.dashCd=.9;f.gT=-1;let dx=I.mx,dy=I.my;if(Math.hypot(dx,dy)<.2){dx=-Math.cos(f.face);dy=-Math.sin(f.face)}
      const l=Math.hypot(dx,dy);f.dx=dx/l;f.dy=dy/l;E({e:'p',x:f.x,y:f.y,c:'#ffffff77',n:5,sp:80})}}
     else if(b==='special')doSpecial(f);
     else{f.atk={d:b==='light'?f.s.L:f.s.H,t:0,hit:false};f.limb*=-1;f.gT=-1}}

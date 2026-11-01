@@ -34,7 +34,7 @@ const server=http.createServer((req,res)=>{
   if(e){res.writeHead(404);return res.end('Not found')}
   const ct=MIME[path.extname(f)]||'application/octet-stream',m=/bytes=(\d*)-(\d*)/.exec(req.headers.range||'');
   if(m){const a=m[1]?+m[1]:0,b=m[2]?Math.min(+m[2],d.length-1):d.length-1;res.writeHead(206,{'Content-Type':ct,'Accept-Ranges':'bytes','Content-Range':`bytes ${a}-${b}/${d.length}`,'Content-Length':b-a+1});return res.end(d.subarray(a,b+1))}
-  res.writeHead(200,{'Content-Type':ct,'Accept-Ranges':'bytes'});res.end(d)})});
+  res.writeHead(200,Object.assign({'Content-Type':ct,'Accept-Ranges':'bytes'},ct.startsWith('audio')?{'Cache-Control':'public, max-age=86400'}:{}));res.end(d)})});
 
 const wss=new WebSocketServer({server,maxPayload:2048});
 const rooms=new Map(),LET='ABCDEFGHJKLMNPQRSTUVWXYZ',DMG=[.5,1,1.5,2];
