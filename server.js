@@ -76,6 +76,7 @@ function command(ws,r,m){
   case 'dchar':if(ws.dev){const i=m.slot|0;if(i>=0&&i<4&&!s.human[i])s.setChar(i,String(m.ch||''))}break;
   case 'dheal':if(ws.dev)s.heal();break;
   case 'ddummy':if(ws.dev){const i=m.slot|0;if(i>=0&&i<4)s.dummy[i]=s.dummy[i]?0:1}break;
+  case 'arena':s.setArena(String(m.ar||''));break;
   case 'kick':for(const c of r.clients)if(c!==ws&&c.slot===m.slot){c.bye=true;fail(c,'Removed by the host')}break}}
 
 wss.on('connection',ws=>{
@@ -93,6 +94,7 @@ wss.on('connection',ws=>{
     if(rooms.size>=50)return fail(ws,'Server busy, try again soon');
     const room={code:newCode(),sim:createSim(),clients:new Set(),master:ws,seats:[null,null,null,null]};
     if(ws.dev)room.sim.dev=true;
+    room.sim.setArena(String(m.ar||''));
     rooms.set(room.code,room);join(ws,room,clean(m.name),want,String(m.ch||''))}
    else if(m.t==='join'){
     const room=rooms.get(String(m.code||'').toUpperCase().trim());

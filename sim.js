@@ -32,12 +32,20 @@ guyou:{id:'iron',n:'Iron Stance',cd:12,r:[0,140],dur:2.5,d:'2.5s: take 60% less 
 tanya:{id:'step',n:'Flash Step',cd:9,r:[60,250],dmg:12,kb:300,stun:.45,d:'Teleport behind the nearest foe and strike'},
 rugof:{id:'slam',n:'Ground Slam',cd:11,r:[0,90],dmg:20,kb:560,stun:.8,rad:95,d:'Slam the ground: area damage and stun'}};
 S.rugof=mod('mt',{n:'Rugof',t:'Heavy clincher',c:'#14b8a6',hair:'#0f2b2a',band:'#5eead4',hp:128,sp:140,dm:1.15});
+// ---- arenas: solid obstacles (circles). Every layout repeats every 90 degrees, so no player gets a better position.
+const sym4=l=>{const o=[];for(const[x,y,r,t]of l)for(let k=0;k<4;k++){const c=Math.cos(k*Math.PI/2),s=Math.sin(k*Math.PI/2);o.push({x:Math.round((x*c-y*s)*10)/10,y:Math.round((x*s+y*c)*10)/10,r,t})}return o};
+const ARENAS={
+ dojo:{n:'Training Dojo',obs:sym4([[105,0,24,'crate']])},
+ cyber:{n:'Cyber Alley',obs:[{x:0,y:0,r:30,t:'pillar'}].concat(sym4([[185,0,16,'pillar']]))},
+ sky:{n:'Sky Temple',obs:sym4([[135,0,14,'pillar'],[75,75,14,'pillar']])},
+ rooftop:{n:'Urban Rooftop',obs:sym4([[70,70,22,'crate'],[0,165,15,'barrel']])},
+ club:{n:'Fight Club',obs:sym4([[60,0,18,'barrel'],[155,0,17,'barrel']])}};
 Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom});for(const k in AB)S[k].ab=AB[k];
 const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 const r1=v=>Math.round(v*10)/10;
 
 function createSim(){
- const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],dev:false,target:3,maxRd:7,rt:60,ft:0};
+ const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],arena:'dojo',obs:ARENAS.dojo.obs,nextAr:null,dev:false,target:3,maxRd:7,rt:60,ft:0};
  const E=o=>sim.ev.push(o);
  const nm=i=>sim.human[i]||sim.away[i]?sim.names[i]:'CPU';
  function near(f){let b=null,bd=1e9;for(const e of sim.F)if(e!==f&&!e.ko){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
@@ -93,7 +101,7 @@ function createSim(){
   else if(id==='knee'){if(d>ab.r[1])return;f.sa={id,t:0,hit:false}}
   else if(id==='od'||id==='iron'){f.bf=id;f.buff=ab.dur;E({e:'p',x:f.x,y:f.y,c:id==='od'?'#fb923c':'#fcd34d',n:14})}
   else if(id==='push'){for(const e of sim.F)if(e!==f&&!e.ko&&e.inv<=0&&Math.hypot(e.x-f.x,e.y-f.y)<125)strike(f,e,8,640,.5,1.8);f.hp=Math.min(f.max,f.hp+6);E({e:'p',x:f.x,y:f.y,c:'#6ee7b7',n:18})}
-  else if(id==='step'){if(!t||d>ab.r[1])return;f.x=t.x-Math.cos(t.face)*38;f.y=t.y-Math.sin(t.face)*38;clampA(f);f.face=Math.atan2(t.y-f.y,t.x-f.x);f.inv=.25;E({e:'p',x:f.x,y:f.y,c:f.s.c,n:12});strike(f,t,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
+  else if(id==='step'){if(!t||d>ab.r[1])return;f.x=t.x-Math.cos(t.face)*38;f.y=t.y-Math.sin(t.face)*38;solve(f);solve(f);f.face=Math.atan2(t.y-f.y,t.x-f.x);f.inv=.25;E({e:'p',x:f.x,y:f.y,c:f.s.c,n:12});strike(f,t,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
   else if(id==='slam')f.sa={id,t:0};
   E({e:'sx',k:'sp_'+id});f.spCd=ab.cd;f.gT=-1;f.buf=null;E({e:'t',x:f.x,y:f.y-34,s:ab.n,c:f.s.c})}
  function spec(f,dt){const A=f.sa,ab=f.s.ab;A.t+=dt;let m=[0,0];
@@ -106,6 +114,20 @@ function createSim(){
    E({e:'sx',k:'sp_slam2'});E({e:'p',x:f.x,y:f.y,c:'#fbbf24',n:26,sp:420});sim.hs=Math.max(sim.hs,.1);E({e:'sh',v:10});f.sa=null;f.lock=.35}
   return m}
  function aiSpec(f,dt){const ab=f.s.ab,t=near(f);if(!ab||!t||f.buf||f.spCd>0||f.stun>0||f.atk||f.sa)return;const d=Math.hypot(t.x-f.x,t.y-f.y);if(d>=ab.r[0]&&d<=ab.r[1]&&Math.random()<dt*.7){f.buf='special';f.bufT=.25}}
+ // ---- obstacles: fighters slide around them and can never end up inside one ----
+ function applyAr(){if(sim.nextAr){sim.arena=sim.nextAr;sim.obs=ARENAS[sim.arena].obs;sim.nextAr=null}}
+ function solve(f){for(const o of sim.obs){const dx=f.x-o.x,dy=f.y-o.y,m=o.r+15,d=Math.hypot(dx,dy);
+   if(d<m){const nx=d>1e-3?dx/d:1,ny=d>1e-3?dy/d:0;f.x=o.x+nx*m;f.y=o.y+ny*m;const vn=f.vx*nx+f.vy*ny;if(vn<0){f.vx-=vn*nx;f.vy-=vn*ny}}}
+  clampA(f)}
+ // CPU fighters steer around obstacles so they don't get stuck behind them
+ function aiAvoid(f){const i=f.in;let mx=i.mx,my=i.my;if(!mx&&!my)return;
+  let near=false;
+  for(const o of sim.obs){const dx=f.x-o.x,dy=f.y-o.y,d=Math.hypot(dx,dy),m=o.r+15+34;
+   if(d<m&&d>1e-3){const w=(m-d)/34,nx=dx/d,ny=dy/d,dot=mx*nx+my*ny;
+    if(dot<0){near=true;const tx=-ny,ty=nx;if(!f.avs)f.avs=(mx*tx+my*ty)>=0?1:-1;   // pick a side once and keep going round it
+     mx+=nx*w*.6*(-dot)+tx*f.avs*w*1.6;my+=ny*w*.6*(-dot)+ty*f.avs*w*1.6}}}
+  if(!near)f.avs=0;
+  const l=Math.hypot(mx,my)||1;i.mx=mx/l;i.my=my/l}
  function upd(f,dt){
   if(f.ko){f.x+=f.vx*dt;f.y+=f.vy*dt;const q=Math.pow(.02,dt);f.vx*=q;f.vy*=q;return}
   for(const k of['stun','slow','inv','dashCd','lock','comboT','spCd','buff'])f[k]=Math.max(0,f[k]-dt);
@@ -149,8 +171,9 @@ function createSim(){
 
  sim.setChar=(i,k)=>{sim.chars[i]=(S[k]&&S[k].b)?k:DEF[i];if(sim.ph==='lobby')build(true)};
  sim.heal=()=>{for(const f of sim.F)if(!f.off&&!f.ko)f.hp=f.max};
- sim.lobby=()=>{sim.ph='lobby';sim.msg='';build(true)};
- sim.start=()=>{if(active()<2)return false;sim.wins=[0,0,0,0];sim.rd=0;round();return true};
+ sim.lobby=()=>{sim.ph='lobby';sim.msg='';applyAr();build(true)};
+ sim.setArena=id=>{if(!ARENAS[id])return;if(sim.ph==='lobby'){sim.arena=id;sim.obs=ARENAS[id].obs}else sim.nextAr=id};
+ sim.start=()=>{if(active()<2)return false;applyAr();sim.wins=[0,0,0,0];sim.rd=0;round();return true};
  sim.input=(i,mx,my,g)=>{const f=sim.F[i];if(!f||!sim.human[i]||f.ko)return;const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}f.in.mx=mx;f.in.my=my;f.in.guard=!!g};
  sim.press=(i,k)=>{const f=sim.F[i];if(!f||!sim.human[i]||sim.ph!=='fight'||f.ko)return;if(k==='special'&&!f.s.ab)return;f.buf=k;f.bufT=.25};
  sim.step=dt=>{
@@ -159,16 +182,16 @@ function createSim(){
   const fight=sim.ph==='fight';
   for(const f of sim.F){if(f.ko)continue;
    if(!fight){f.in.mx=f.in.my=0;f.in.guard=false;f.buf=null}
-   else if(!sim.human[f.i]){if(sim.dummy[f.i]){f.in.mx=f.in.my=0;f.in.guard=false}else{ai(f,dt);aiSpec(f,dt)}}}
+   else if(!sim.human[f.i]){if(sim.dummy[f.i]){f.in.mx=f.in.my=0;f.in.guard=false}else{ai(f,dt);aiAvoid(f);aiSpec(f,dt)}}}
   for(const f of sim.F)upd(f,dt);
   const F=sim.F;
   for(let i=0;i<4;i++)for(let j=i+1;j<4;j++){const a=F[i],b=F[j];if(a.ko||b.ko||(a.clinch&&a.clinch.v===b)||(b.clinch&&b.clinch.v===a))continue;
    let dx=b.x-a.x,dy=b.y-a.y;const d=Math.hypot(dx,dy)||1;if(d<30){const p=(30-d)/2;dx/=d;dy/=d;a.x-=dx*p;a.y-=dy*p;b.x+=dx*p;b.y+=dy*p}}
-  for(const f of F)clampA(f);
+  for(const f of F){solve(f);solve(f)}
   if(sim.ph==='count'){sim.pt-=dt;if(sim.pt<=0){sim.ph='fight';sim.ft=0}}
   else if(sim.ph==='fight'){sim.ft+=dt;check()}
   else if(sim.ph==='end'){sim.pt-=dt;if(sim.pt<=0)round()}};
- sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,dz:sim.dummy,w:sim.wins,
+ sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,ar:sim.arena,dz:sim.dummy,w:sim.wins,
   f:sim.F.map(f=>({k:f.k,n:nm(f.i),h:sim.human[f.i]?1:0,x:r1(f.x),y:r1(f.y),a:Math.round(f.face*100)/100,hp:Math.round(f.hp),mx:f.max,
    ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),aw:sim.away[f.i]?1:0,bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
    at:f.atk?{d:f.atk.d===f.s.H?'H':'L',t:Math.round(f.atk.t*1000)/1000,l:f.limb}:0})),e:sim.ev};
@@ -176,6 +199,6 @@ function createSim(){
  sim.lobby();
  return sim}
 
-const API={S,ORDER,R,createSim};
+const API={S,ORDER,R,createSim,ARENAS};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;else window.Rumble=API;
 })();
