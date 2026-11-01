@@ -252,6 +252,7 @@ const sndBtn=()=>{$('snd').textContent=muted?'Muted':'Sound'};sndBtn();
 $('snd').onclick=()=>{muted=!muted;LS('rms',muted?'1':'0');sndBtn()};
 
 /* ---- sound engine: your MP3s where you have them, synthesized effects for the rest ---- */
+const GN={punch:1,kick:.95,block:.3},RT={block:.88}; // loudness and pitch trims per recorded sound (block was too loud and too high)
 const SFILES={punch:'punch.mp3',kick:'kick.mp3',block:'block.mp3',fight:'fightstart.mp3',lose:'lose.mp3',unlock:'unlock.mp3'},SF={},lastT={};let sfLoaded=false,live=0,NB=null;
 function loadSfx(){if(sfLoaded||!AC)return;sfLoaded=true;for(const k in SFILES)fetch(SFILES[k]).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>AC.decodeAudioData(b)).then(d=>{SF[k]=d}).catch(()=>{})}
 function bf(k,v,rate){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=SF[k];s.playbackRate.value=rate||1;g.gain.value=v;s.connect(g);g.connect(AC.destination);live++;s.onended=()=>{live--};s.start()}
@@ -276,16 +277,21 @@ const SY={
  sp_slam2:v=>{ns(.5,.2*v,'lowpass',500,80);tn('sine',90,28,.7,.2*v)}};
 function sfx(k,h){if(muted||!AC)return;const v=cfg.sv;if(!(v>0))return;const n=performance.now();if(n-(lastT[k]||0)<45||live>10)return;lastT[k]=n;
  try{
-  if(k==='punch'||k==='kick'||k==='block'){if(SF[k])bf(k,(h?1:.8)*v,(h?.92:1.05)*(1+(Math.random()-.5)*.1));else{ns(.1,.12*v,'lowpass',2000,300);tn('square',h?140:200,60,.1,.1*v)}return}
+  if(k==='punch'||k==='kick'||k==='block'){if(SF[k])bf(k,(h?1:.8)*v*(GN[k]||1),(h?.92:1.05)*(RT[k]||1)*(1+(Math.random()-.5)*.1));else{ns(.1,.12*v,'lowpass',2000,300);tn('square',h?140:200,60,.1,.1*v)}return}
   if(k==='fight'||k==='lose'||k==='unlock'){if(SF[k])bf(k,v,1);else tn('sawtooth',300,k==='lose'?120:500,.4,.07*v);return}
   const f=SY[k];if(f)f(v)}catch{}}
 document.addEventListener('pointerdown',e=>{const b=e.target&&e.target.closest&&e.target.closest('button');if(b&&!b.classList.contains('b'))sfx('click')});
-const MUS={};for(const k of['title','lobby','select']){const a=new Audio(k+'.mp3');a.loop=true;a.preload='none';a.volume=0;MUS[k]=a}
+// Music plays from decoded buffers with loop=true, which repeats with no gap (the MP3s are pre-trimmed so the end blends into the start).
+const MFILES={title:'title.mp3',lobby:'lobby.mp3',select:'select.mp3'},MB={},MN={},mLd={};
+function loadMus(k){if(MB[k]||mLd[k]||!AC)return;mLd[k]=1;fetch(MFILES[k]).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>AC.decodeAudioData(b)).then(d=>{MB[k]=d}).catch(()=>{mLd[k]=0})}
 function wantTrack(){if(muted||!AC||document.hidden)return null;
  if(mode==='menu'){const o=document.querySelector('.ov:not(.h)'),id=o?o.id:'home';return id==='chr'?'select':id==='menu'?'lobby':'title'}
  if(mode==='on'&&snap&&snap.p==='lobby')return'lobby';return null}
-function musTick(){const w=wantTrack();for(const k in MUS){const a=MUS[k],tg=k===w?Math.min(1,cfg.vol):0;a.volume=Math.max(0,Math.min(1,a.volume+Math.max(-.1,Math.min(.1,tg-a.volume))));
- if(k===w&&a.paused)a.play().catch(()=>{});else if(k!==w&&!a.paused&&a.volume<.01)a.pause()}}
+function musTick(){const w=wantTrack();if(AC)for(const k in MFILES)if(k===w||MB.title)loadMus(k);
+ for(const k in MFILES){let n=MN[k];
+  if(k===w&&MB[k]&&!n){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=MB[k];s.loop=true;g.gain.value=0;s.connect(g);g.connect(AC.destination);s.start();n=MN[k]={s,g,v:0}}
+  if(n){const tg=k===w?Math.min(1,cfg.vol):0;n.v=Math.max(0,n.v+Math.max(-.1,Math.min(.1,tg-n.v)));n.g.gain.value=n.v;
+   if(k!==w&&n.v<.005){try{n.s.stop()}catch{}MN[k]=null}}}}
 setInterval(musTick,150);
 /* ---- snapshots to effects ---- */
 function ingest(s){const pv=snap;snap=s;if(pv&&pv.p==='fight'&&s.p==='end')sfx('round');
