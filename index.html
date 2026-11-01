@@ -116,6 +116,9 @@ h1{font-size:34px}h2{font-size:22px}
 #lost .pan{width:min(300px,86vw);align-items:center;text-align:center}
 #rjb{grid-column:1/3}
 #arr{flex-wrap:wrap;justify-content:center}
+#mdr{flex-wrap:wrap;justify-content:center}#arr .ghost.sel,#mdr .ghost.sel{border-color:#ffd84d;color:#ffd84d}#mdr .ghost{padding:8px 10px;font-size:12px}
+#trp{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);z-index:4;width:min(470px,58vw);background:rgba(11,16,32,.92);border:1px solid #3a4d78;border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:4px;align-items:center}
+#trp .row{flex-wrap:wrap}#trp .ghost{padding:4px 8px;font-size:11px}#tri{font:700 11px system-ui;color:#ffd84d}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -125,7 +128,7 @@ h1{font-size:34px}h2{font-size:22px}
  <div id="rcw">Room <span id="rc"></span></div>
  <div id="ros"></div>
  <div class="row"><button class="ghost go" id="c-start">Start / restart</button><button class="ghost" id="c-pause">Pause</button><button class="ghost" id="c-stop">Lobby</button></div>
- <div class="row"><button class="ghost" id="c-ai">AI fill</button><button class="ghost" id="c-dmg">Damage</button><button class="ghost" id="c-ar">Arena</button></div>
+ <div class="row"><button class="ghost" id="c-ai">AI fill</button><button class="ghost" id="c-dmg">Damage</button><button class="ghost" id="c-ar">Arena</button><button class="ghost" id="c-md">Mode</button></div>
 </div>
 <div id="lob" class="h"><div class="k">ROOM CODE</div><div id="lc"></div><div id="ls"></div>
  <div class="row"><button class="ghost" id="sh">Share code</button><button class="ghost go" id="st">Start match</button></div><div class="k" id="wt">WAITING FOR HOST</div></div>
@@ -133,6 +136,7 @@ h1{font-size:34px}h2{font-size:22px}
 <div id="dvg" class="h"><div id="dvi"></div><div class="row"><button class="ghost" data-d="self">My hero &#9656;</button><button class="ghost" data-d="slot">Slot: 2</button><button class="ghost" data-d="opp">Slot hero &#9656;</button></div><div class="row"><button class="ghost" data-d="heal">Heal</button><button class="ghost" data-d="rs">Restart</button><button class="ghost" data-d="dm">Dummy</button><button class="ghost" data-d="x">Close</button></div></div>
 <div id="res" class="h"><h2 id="rt"></h2><p class="sub" id="rm"></p><div class="pan" id="rb"></div><div class="row"><button class="ghost go" id="rr">Rematch</button><button class="ghost" id="rl">Leave</button></div><p class="sub h" id="rw">Waiting for the host to start a rematch</p></div>
 <div id="lost" class="h"><div class="pan"><b>Connection lost</b><span class="sub" id="lostn">Reconnecting...</span><button class="ghost" id="lostl">Leave match</button></div></div>
+<div id="trp" class="h"><div id="tri"></div><div class="row"><button class="ghost" data-t="dm">Dummy</button><button class="ghost" data-t="hero">Dummy hero</button><button class="ghost" data-t="heal">Heal</button><button class="ghost" data-t="rs">Reset</button><button class="ghost" data-t="cd">Cooldowns</button></div></div>
 <div id="toast" class="h"></div>
 <div id="rot"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><div>Rotate your phone<br>to play</div></div>
 <div id="home" class="ov"><h1>Martial RUMBLE</h1><canvas id="hero" width="300" height="260"></canvas><p class="sub">Overhead fighting with many styles.</p>
@@ -148,7 +152,7 @@ h1{font-size:34px}h2{font-size:22px}
  <button class="ghost" data-go="home">Back</button><h2>Modes</h2>
  <p class="sub">Four fighting styles, one ring. Last fighter standing wins.</p>
  <input type="text" id="nm" maxlength="4" placeholder="NAME" autocomplete="off" autocapitalize="characters" spellcheck="false">
- <button class="ghost" id="chb" data-go="chr" style="width:min(420px,100%)"></button><div class="sub">Arena</div><div class="row" id="arr"></div>
+ <button class="ghost" id="chb" data-go="chr" style="width:min(420px,100%)"></button><div class="sub">Arena</div><div class="row" id="arr"></div><div class="sub">Mode</div><div class="row" id="mdr"></div>
  <button class="ghost go" id="pr" style="width:min(420px,100%)">Practice vs AI</button>
  <div class="pan"><div class="sub">Play online</div>
   <div class="row"><input type="text" id="jc" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="ghost" id="jn">Join room</button></div>
@@ -194,14 +198,14 @@ function cards(){const bar=w=>`<i><u style="width:${Math.min(100,w)}%"></u></i>`
   cards()});
  $('lv').textContent='Level '+(1+Math.floor(PRG.xp/200));$('cn').textContent=PRG.coins+' coins';$('xpu').style.width=(PRG.xp%200)/2+'%';
  $('chb').textContent='Fighter: '+S[cur()].n+(DEV&&dk?' [DEV]':'')+'  (change)'}
-function reward(w,match){if(DEV)return;const x=match?(w?100:30):(w?15:5),c=match?(w?60:15):(w?10:3);PRG.xp+=x;PRG.coins+=c;savePrg();toast((match?(w?'Match won! ':'Match finished. '):(w?'Round won! ':''))+'+'+x+' XP, +'+c+' coins');cards()}
+function reward(w,match){if(DEV||(snap&&snap.md==='train'))return;const x=match?(w?100:30):(w?15:5),c=match?(w?60:15):(w?10:3);PRG.xp+=x;PRG.coins+=c;savePrg();toast((match?(w?'Match won! ':'Match finished. '):(w?'Round won! ':''))+'+'+x+' XP, +'+c+' coins');cards()}
 cards();
 /* ---- state flow ---- */
 function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').forEach(o=>o.classList.add('h'));ctl.classList.toggle('h',me<0);$('quit').classList.remove('h');$('snd').classList.remove('h');$('mbtn').classList.toggle('h',!master);$('dvt').classList.toggle('h',!DEV);if(!master)$('mp').classList.add('h')}
 function leave(){clearTimeout(rjT);lost(false);RJ=null;LS('rrj','');if(ws){try{if(ws.readyState===1)ws.send('{"t":"bye"}')}catch{}ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
- show('home');for(const i of['quit','snd','mbtn','mp','lob','dvt','dvg','res'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
+ show('home');for(const i of['quit','snd','mbtn','mp','lob','dvt','dvg','res','trp'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
-$('pr').onclick=()=>{sim=createSim();me=pick;sim.setArena(arena);sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
+$('pr').onclick=()=>{sim=createSim();me=pick;sim.setArena(arena);sim.setMode(gmode);if(gmode==='train'){sim.dummy[1]=1;sim.aiFill=false}sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
 function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m))}
 function connect(first){
  if(ws)return;
@@ -216,9 +220,9 @@ function connect(first){
   else if(m.t==='err'){toast(m.m);if(m.x){mine.onclose=null;mine.close();ws=null;LS('rrj','');RJ=null;if(mode==='on')leave();else lost(false)}}};
  mine.onclose=()=>{if(ws===mine)connLost()}}
 $('jn').onclick=()=>{const c=$('jc').value;if(c.length<4)return toast('Enter the 4-letter room code');connect({t:'join',code:c,name:nm(),slot:pick,ch:cur(),dt:DT})};
-$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:cur(),dt:DT,ar:arena});
+$('ho').onclick=()=>connect({t:'create',pw:$('hp').value,name:nm(),slot:$('hpl').checked?pick:-1,ch:cur(),dt:DT,ar:arena,md:gmode==='team'?'team':'ffa'});
 const cmd=(c,o)=>send(Object.assign({t:'cmd',c},o));
-$('c-start').onclick=()=>cmd('start');$('c-pause').onclick=()=>cmd('pause');$('c-stop').onclick=()=>cmd('stop');$('c-ai').onclick=()=>cmd('ai');$('c-dmg').onclick=()=>cmd('dmg');$('c-ar').onclick=()=>{const i=AO.indexOf(snap&&snap.ar||arena);cmd('arena',{ar:AO[(i+1)%AO.length]});toast('Arena changes when the next match starts')};
+$('c-start').onclick=()=>cmd('start');$('c-pause').onclick=()=>cmd('pause');$('c-stop').onclick=()=>cmd('stop');$('c-ai').onclick=()=>cmd('ai');$('c-dmg').onclick=()=>cmd('dmg');$('c-md').onclick=()=>{cmd('mode',{md:snap&&snap.md==='team'?'ffa':'team'});toast('Mode changes when the next match starts')};$('c-ar').onclick=()=>{const i=AO.indexOf(snap&&snap.ar||arena);cmd('arena',{ar:AO[(i+1)%AO.length]});toast('Arena changes when the next match starts')};
 $('ros').onclick=e=>{const s=e.target.dataset.slot;if(s!==undefined)cmd('kick',{slot:+s})};
 function share(){const t='Join my Martial RUMBLE room: '+code;try{if(navigator.share)navigator.share({title:'Martial RUMBLE',text:t});else{navigator.clipboard.writeText(code);toast('Code copied')}}catch{}}
 $('sh').onclick=share;$('st').onclick=()=>cmd('start');
@@ -229,14 +233,14 @@ function mpUpdate(){if(mode!=='on'||!snap)return;const now=performance.now();if(
  $('rc').textContent=code;
  const h=snap.f.map((f,i)=>`<div class="rw"><span style="color:${S[f.k].c}">${S[f.k].n}</span><b>${f.h?f.n:'CPU'}</b>${f.h&&i!==me?`<button class="ghost" data-slot="${i}">Kick</button>`:'<span></span>'}</div>`).join('');
  if(h!==mpHtml){mpHtml=h;$('ros').innerHTML=h}
- $('c-pause').textContent=snap.pa?'Resume':'Pause';$('c-ai').textContent='AI fill: '+(snap.ai?'on':'off');$('c-dmg').textContent='Damage x'+snap.dm;$('c-ar').textContent='Arena: '+(TH[snap.ar]||TH.dojo).n}
+ $('c-pause').textContent=snap.pa?'Resume':'Pause';$('c-ai').textContent='AI fill: '+(snap.ai?'on':'off');$('c-dmg').textContent='Damage x'+snap.dm;$('c-md').textContent='Mode: '+(snap.md==='team'?'Team 2v2':'Free-for-all');$('c-ar').textContent='Arena: '+(TH[snap.ar]||TH.dojo).n}
 /* ---- sound + haptics ---- */
 let AC=null,muted=LS('rms')==='1',banner=null,dashAt=-1e4;
 let cfg=Object.assign({vol:.4,sv:.8,hc:0,vib:1,lh:0,bs:1},JSON.parse(LS('rmc')||'{}'));
 const buzz=n=>{if(!cfg.vib)return;try{navigator.vibrate&&navigator.vibrate(n)}catch{}};
 function show(id){document.querySelectorAll('.ov').forEach(o=>o.classList.toggle('h',o.id!==id))}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{buzz(6);show(b.dataset.go)});
-$('qp').onclick=()=>$('pr').click();
+$('qp').onclick=()=>{const g=gmode;if(g==='train')gmode='ffa';$('pr').click();gmode=g};
 const SU=window.RUMBLE_SUPPORT;
 $('supb').innerHTML='<b>Having trouble?</b><span>"Could not reach the server": the free server sleeps. Open the game website once, wait a minute, then try again.</span><span>Online rooms use a 4-letter code. The host shares it from the lobby.</span>'+(SU?'<span>Contact: '+SU+'</span>':'<span>Support contact coming soon.</span>');
 function apply(){document.body.classList.toggle('hc',!!cfg.hc);ctl.classList.toggle('lh',!!cfg.lh);document.documentElement.style.setProperty('--bs',cfg.bs)}
@@ -298,12 +302,12 @@ setInterval(musTick,150);
 function ingest(s){const pv=snap;snap=s;if(pv&&pv.p==='fight'&&s.p==='end')sfx('round');
  if(pv&&me>=0&&s.f[me]&&!s.f[me].off){
   if(pv.p==='fight'&&s.p==='end')reward(s.w[me]>pv.w[me],false);
-  else if(pv.p!=='over'&&pv.p!=='lobby'&&s.p==='over'){const top=Math.max(...s.w);reward(top>0&&s.w[me]===top&&s.w.filter(x=>x===top).length===1,true)}}
- resUI();
+  else if(pv.p!=='over'&&pv.p!=='lobby'&&s.p==='over')reward(outcome(s).win,true)}
+ resUI();trUI();
  for(const e of s.e){
   if(e.e==='p'){const n=e.n||8;for(let i=0;i<n;i++){const a=Math.random()*TAU,v=(e.sp||200)*(.3+Math.random());FX.push({t:'p',x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.35,L:.35,c:e.c})}
    if(!e.sp)FX.push({t:'r',x:e.x,y:e.y,l:.28,L:.28,c:e.c})}
-  else if(e.e==='t'){TX.push({x:e.x,y:e.y,s:e.s,c:e.c,l:.8});if(e.s==='KO!')sfx('ko')}
+  else if(e.e==='t'){TX.push({x:e.x,y:e.y,s:e.s,c:e.c,l:.8});if(e.s==='KO!')sfx('ko');else if(typeof e.s==='number'&&snap&&snap.md==='train')trHit(e)}
   else if(e.e==='w'){FX.push({t:'w',x:e.x,y:e.y,a:e.a,r:e.r,arc:e.arc,l:.22,L:.22,c:e.c,k:e.k,h:e.h});sfx('swing')}
   else if(e.e==='sh')shake=Math.min(16,shake+e.v);
   else if(e.e==='sx')sfx(e.k,e.h)}
@@ -421,7 +425,7 @@ function fighter(f,d,i){
  if(def)p=at.t<def.w?-.35*at.t/def.w:Math.max(0,1-(at.t-def.w)/(def.a+def.r));
  ctx.save();ctx.translate(X,Y);
  ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(0,1,15,6,0,0,TAU);ctx.fill();
- if(!f.ko){ctx.strokeStyle=s.c+'99';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,1,19,8,0,0,TAU);ctx.stroke()}
+ if(!f.ko){ctx.strokeStyle=snap.tm?TC[snap.tm[i]]:s.c+'99';ctx.lineWidth=snap.tm?4:3;ctx.beginPath();ctx.ellipse(0,1,19,8,0,0,TAU);ctx.stroke()}
  if(i===me&&!f.ko){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.lineDashOffset=-performance.now()/120;ctx.beginPath();ctx.ellipse(0,1,25,10.5,0,0,TAU);ctx.stroke();ctx.setLineDash([])}
  if(f.bf&&!f.ko){const c1=f.bf==='iron'?'#fcd34d':'#fb923c';ctx.save();ctx.globalAlpha=.55+.3*Math.sin(performance.now()/90);ctx.strokeStyle=c1;ctx.fillStyle=c1+'33';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,1,29,12,0,0,TAU);ctx.fill();ctx.stroke();ctx.restore()}
  if(f.sa==='slam'&&!f.ko){ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.ellipse(0,1,95,95*T,0,0,TAU);ctx.stroke();ctx.restore()}
@@ -461,13 +465,15 @@ function hud(){const cw0=Math.max(110,Math.min(170,(W-2*R*sc)/2-18)),SY=SAT+8;ct
  snap.f.forEach((f,i)=>{const x=i<2?SAL+10:W-SAR-10-cw0,y=SY+(i%2)*56,cw=cw0,s=S[f.k],d=V[i],bw=cw-16;
   rr(x,y,cw,46,9);ctx.fillStyle=i===me?'#ffffff20':'#ffffff0e';ctx.fill();
   if(i===me){ctx.strokeStyle=s.c;ctx.lineWidth=1.5;ctx.stroke()}
+  if(snap.tm){ctx.fillStyle=TC[snap.tm[i]];rr(x,y+4,4,38,2);ctx.fill()}
   ctx.save();rr(x+5,y+4,22,22,6);ctx.clip();ctx.drawImage(pimg(f.k),x+5,y+4,22,22);ctx.restore();ctx.fillStyle=f.off?'#555':s.c;
   ctx.font='800 12px system-ui';ctx.fillText(f.off?'-':f.n+(f.aw?' (away)':''),x+33,y+17);
   ctx.font='500 10px system-ui';ctx.fillStyle='#a39786';ctx.fillText(s.n+(snap.w[i]?'  \u2605'+snap.w[i]:''),x+33,y+28);
   rr(x+8,y+33,bw,7,3.5);ctx.fillStyle='#0009';ctx.fill();
   if(!f.off){if(d){rr(x+8,y+33,Math.max(0,bw*d.gh/f.mx),7,3.5);ctx.fillStyle='#fff9';ctx.fill()}
    rr(x+8,y+33,Math.max(0,bw*f.hp/f.mx),7,3.5);ctx.fillStyle=f.ko?'#555':s.c;ctx.fill()}});
- if(snap.p==='fight'&&!snap.pa){const e=Math.max(0,Math.ceil(snap.tl==null?60:snap.tl));ctx.textAlign='center';ctx.font='800 11px system-ui';ctx.fillStyle='#fff9';ctx.fillText('Round '+snap.rd+' \u00b7 first to '+(snap.tg||3),W/2,SAT+42);const tx=(e/60|0)+':'+String(e%60).padStart(2,'0');ctx.font='900 24px system-ui';ctx.lineWidth=4;ctx.lineJoin='round';ctx.strokeStyle='#000';ctx.fillStyle=e<=10&&Math.floor(performance.now()/300)%2?'#ff5a4d':'#fff';ctx.strokeText(tx,W/2,SAT+66);ctx.fillText(tx,W/2,SAT+66)}
+ if(snap.md==='train'){ctx.textAlign='center';ctx.font='900 14px system-ui';ctx.fillStyle='#ffd84d';ctx.fillText('TRAINING',W/2,SAT+46)}
+ else if(snap.p==='fight'&&!snap.pa){const e=Math.max(0,Math.ceil(snap.tl==null?60:snap.tl));ctx.textAlign='center';ctx.font='800 11px system-ui';ctx.fillStyle='#fff9';ctx.fillText('Round '+snap.rd+' \u00b7 first to '+(snap.tg||3),W/2,SAT+42);const tx=(e/60|0)+':'+String(e%60).padStart(2,'0');ctx.font='900 24px system-ui';ctx.lineWidth=4;ctx.lineJoin='round';ctx.strokeStyle='#000';ctx.fillStyle=e<=10&&Math.floor(performance.now()/300)%2?'#ff5a4d':'#fff';ctx.strokeText(tx,W/2,SAT+66);ctx.fillText(tx,W/2,SAT+66)}
  let t='',u='',k=1;const ty=cy-28;
  if(snap.pa)t='Paused';
  else if(snap.p==='count'){t=String(Math.max(1,Math.ceil(snap.pt)));k=1+.35*(snap.pt%1)}
@@ -558,14 +564,36 @@ setInterval(()=>{const j=savedRJ();
  $('rjb').classList.toggle('h',!(j&&mode==='menu'&&!$('home').classList.contains('h')));if(j)$('rjb').textContent='Rejoin room '+j.code;
  if(mode==='on'&&ws&&RJ&&ws.readyState===1)LS('rrj',JSON.stringify({code:RJ.code,tok:RJ.tok,t:Date.now()}));
  if(mode==='on'&&ws&&!lostOn&&lastS&&performance.now()-lastS>4000)dropConn()},2000);
+
+/* ---- game modes: free-for-all, team 2v2, training ---- */
+const MODES=[['ffa','Free-for-all'],['team','Team 2v2'],['train','Training']],TC=['#3b82f6','#ef4444'],DMN=['Fights back','Still','Guarding'];
+let gmode=LS('rmm')||'ffa';if(!MODES.some(m=>m[0]===gmode))gmode='ffa';
+function modesUI(){$('mdr').innerHTML=MODES.map(m=>'<button class="ghost'+(m[0]===gmode?' sel':'')+'" data-m="'+m[0]+'">'+m[1]+'</button>').join('');
+ $('mdr').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{gmode=b.dataset.m;LS('rmm',gmode);modesUI()})}modesUI();
+// who won the match (works for teams and free-for-all)
+function outcome(s){if(s.tm){const a=s.w[0],b=s.w[2];if(a===b)return{ch:-1,win:false};const c=a>b?0:1;return{ch:c,win:me>=0&&s.tm[me]===c}}
+ const top=Math.max(...s.w),u=top>0&&s.w.filter(x=>x===top).length===1,w=u?s.w.indexOf(top):-1;return{ch:w,win:u&&w===me}}
+// training mode: damage stats, dummy controls
+const TR={last:0,tot:0,n:0,c:0,best:0,lt:0};
+function trHit(e){const d=snap&&snap.f[1];if(!d||Math.hypot(e.x-d.x,e.y-d.y)>50)return;const n=performance.now();TR.last=e.s;TR.tot+=e.s;TR.n++;TR.c=n-TR.lt<1400?TR.c+1:1;TR.lt=n;if(TR.c>TR.best)TR.best=TR.c}
+function trUI(){$('trp').classList.toggle('h',!(snap&&snap.md==='train'&&mode==='off'))}
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{if(!sim||!snap||snap.md!=='train')return;const a=b.dataset.t;
+ if(a==='dm'){const o=[1,2,0];sim.dummy[1]=o[(o.indexOf(sim.dummy[1]|0)+1)%3]}
+ else if(a==='heal'){sim.heal();for(const f of sim.F)f.spCd=0}
+ else if(a==='rs'){sim.start();Object.assign(TR,{last:0,tot:0,n:0,c:0,best:0,lt:0})}
+ else if(a==='cd'){sim.fastCd=!sim.fastCd;for(const f of sim.F)f.spCd=0}
+ else if(a==='hero'){sim.setChar(1,nxt(snap.f[1].k));sim.start()}});
+setInterval(()=>{if(!snap||snap.md!=='train'||mode!=='off')return;const z=(snap.dz&&snap.dz[1])|0;
+ $('tri').textContent='Last hit '+TR.last+'   Total '+TR.tot+'   Hits '+TR.n+'   Best combo x'+TR.best;
+ const q=k=>document.querySelector('[data-t='+k+']');q('dm').textContent='Dummy: '+DMN[z];q('cd').textContent='Cooldowns: '+(sim.fastCd?'Fast':'Normal');q('hero').textContent='Dummy hero: '+S[snap.f[1].k].n},250);
 /* ---- match results screen ---- */
 let resKey='',resSnd=false;
 function resUI(){const o=!!snap&&snap.p==='over';$('res').classList.toggle('h',!o);if(!o){resKey='';resSnd=false;return}
  const key=snap.w.join()+snap.m+master;if(key===resKey)return;resKey=key;
- const top=Math.max(...snap.w),ch=top>0&&snap.w.filter(x=>x===top).length===1?snap.w.indexOf(top):-1;
- $('rt').textContent=ch<0?'Draw':ch===me?'Victory!':me>=0?'Defeat':'Match over';
- $('rm').textContent=snap.m;if(!resSnd){resSnd=true;sfx(ch<0?'draw':ch===me?'win':'lose')}
- $('rb').innerHTML=snap.f.map((f,i)=>({f,i})).filter(o=>!o.f.off).sort((a,b)=>snap.w[b.i]-snap.w[a.i]).map(o=>'<div class="st"><span style="color:'+S[o.f.k].c+'"><b>'+o.f.n+'</b> '+S[o.f.k].n+(o.i===me?' (you)':'')+'</span><b>'+snap.w[o.i]+' / '+(snap.tg||3)+'</b></div>').join('');
+ const oc=outcome(snap);
+ $('rt').textContent=oc.ch<0?'Draw':oc.win?'Victory!':me>=0?'Defeat':'Match over';
+ $('rm').textContent=snap.m;if(!resSnd){resSnd=true;sfx(oc.ch<0?'draw':oc.win?'win':'lose')}
+ $('rb').innerHTML=snap.f.map((f,i)=>({f,i})).filter(o=>!o.f.off).sort((a,b)=>snap.w[b.i]-snap.w[a.i]).map(o=>'<div class="st"><span style="color:'+S[o.f.k].c+'">'+(snap.tm?'<i>'+(snap.tm[o.i]?'Red':'Blue')+'</i> ':'')+'<b>'+o.f.n+'</b> '+S[o.f.k].n+(o.i===me?' (you)':'')+'</span><b>'+snap.w[o.i]+' / '+(snap.tg||3)+'</b></div>').join('');
  const host=mode==='off'||master;$('rr').classList.toggle('h',!host);$('rw').classList.toggle('h',host)}
 $('rr').onclick=()=>{if(mode==='off')sim.start();else cmd('start')};
 $('rl').onclick=()=>leave();
@@ -589,7 +617,7 @@ document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const a=b.datase
  if(a==='opp'){const k=nxt(snap.f[TS].k);if(off){sim.setChar(TS,k);sim.start()}else cmd('dchar',{slot:TS,ch:k});toast('Slot '+(TS+1)+': '+S[k].n+(off?'':' (next round, host only)'));return}
  if(a==='heal'){if(off)sim.heal();else cmd('dheal');return}
  if(a==='rs'){if(off)sim.start();else cmd('start');return}
- if(a==='dm'){if(off)sim.dummy[TS]^=1;else cmd('ddummy',{slot:TS});toast('Dummy toggled for slot '+(TS+1))}});
+ if(a==='dm'){if(off)sim.dummy[TS]=sim.dummy[TS]?0:1;else cmd('ddummy',{slot:TS});toast('Dummy toggled for slot '+(TS+1))}});
 setInterval(()=>{if(!DEV||$('dvg').classList.contains('h')||!snap)return;const i=me>=0?me:0,f=snap.f[i],o=snap.f[TS];if(!f||!o)return;const s=S[f.k],a=f.at;
  $('dvi').textContent=s.n+' ('+s.b+')  slot '+(i+1)+'\nHP '+f.hp+'/'+f.mx+'  speed '+s.sp+'  dmg x'+(s.dm||1).toFixed(2)+'  room x'+snap.dm+'\nmove: '+(a?a.d+' '+(+a.t).toFixed(2):'idle')+'  guard: '+(f.g>=0?'on':'off')+'  dash-safe: '+(f.iv?'yes':'no')+'\nspecial: '+(s.ab?s.ab.n+'  cd '+f.sc+'/'+s.ab.cd+'s':'none')+'\nopp slot '+(TS+1)+': '+S[o.k].n+(snap.dz&&snap.dz[TS]?' (dummy)':'')+'  '+(mode==='on'?'room '+code:'offline')},200);
 </script>

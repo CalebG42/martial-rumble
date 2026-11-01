@@ -44,7 +44,7 @@ const send=(ws,o)=>{if(ws.readyState===1)ws.send(JSON.stringify(o))};
 const fail=(ws,m)=>{send(ws,{t:'err',m,x:1});ws.close()};
 
 function seat(ws,r,name,want,ch){
- const sim=r.sim,free=[0,1,2,3].filter(i=>!sim.human[i]);let s=-1;
+ const sim=r.sim,free=(sim.mode==='team'?[0,2,1,3]:[0,1,2,3]).filter(i=>!sim.human[i]);let s=-1;
  if(want>=0&&want<4&&free.length)s=free.includes(want)?want:free[0];
  ws.slot=s;
  if(s>=0){sim.human[s]=1;sim.names[s]=name||'P'+(s+1);sim.setChar(s,canUse(ws,ch)||ws.dev?ch:null);ws.tok=crypto.randomBytes(16).toString('hex');r.seats[s]={tok:ws.tok,held:false,exp:0}}}
@@ -76,6 +76,7 @@ function command(ws,r,m){
   case 'dchar':if(ws.dev){const i=m.slot|0;if(i>=0&&i<4&&!s.human[i])s.setChar(i,String(m.ch||''))}break;
   case 'dheal':if(ws.dev)s.heal();break;
   case 'ddummy':if(ws.dev){const i=m.slot|0;if(i>=0&&i<4)s.dummy[i]=s.dummy[i]?0:1}break;
+  case 'mode':if(m.md==='ffa'||m.md==='team')s.setMode(m.md);break;
   case 'arena':s.setArena(String(m.ar||''));break;
   case 'kick':for(const c of r.clients)if(c!==ws&&c.slot===m.slot){c.bye=true;fail(c,'Removed by the host')}break}}
 
@@ -95,6 +96,7 @@ wss.on('connection',ws=>{
     const room={code:newCode(),sim:createSim(),clients:new Set(),master:ws,seats:[null,null,null,null]};
     if(ws.dev)room.sim.dev=true;
     room.sim.setArena(String(m.ar||''));
+    if(m.md==='ffa'||m.md==='team')room.sim.setMode(m.md);
     rooms.set(room.code,room);join(ws,room,clean(m.name),want,String(m.ch||''))}
    else if(m.t==='join'){
     const room=rooms.get(String(m.code||'').toUpperCase().trim());
