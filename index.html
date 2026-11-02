@@ -119,6 +119,8 @@ h1{font-size:34px}h2{font-size:22px}
 #mdr{flex-wrap:wrap;justify-content:center}#arr .ghost.sel,#mdr .ghost.sel{border-color:#ffd84d;color:#ffd84d}#mdr .ghost{padding:8px 10px;font-size:12px}
 #trp{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);z-index:4;width:min(470px,58vw);background:rgba(11,16,32,.92);border:1px solid #3a4d78;border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:4px;align-items:center}
 #trp .row{flex-wrap:wrap}#trp .ghost{padding:4px 8px;font-size:11px}#tri{font:700 11px system-ui;color:#ffd84d}
+.pg{display:grid;grid-template-columns:1fr auto;gap:3px 16px;width:100%}.pg b{text-align:right}.pr{width:100%;margin-top:4px}
+#rst{font-size:12px;margin:0}
 </style></head></head><body>
 <canvas id="c"></canvas>
 <div id="ctl" class="h"><div id="hint"></div><div id="zone"><div id="base"><div id="knob"></div></div></div>
@@ -134,19 +136,20 @@ h1{font-size:34px}h2{font-size:22px}
  <div class="row"><button class="ghost" id="sh">Share code</button><button class="ghost go" id="st">Start match</button></div><div class="k" id="wt">WAITING FOR HOST</div></div>
 <button id="dvt" class="ghost h">Dev</button>
 <div id="dvg" class="h"><div id="dvi"></div><div class="row"><button class="ghost" data-d="self">My hero &#9656;</button><button class="ghost" data-d="slot">Slot: 2</button><button class="ghost" data-d="opp">Slot hero &#9656;</button></div><div class="row"><button class="ghost" data-d="heal">Heal</button><button class="ghost" data-d="rs">Restart</button><button class="ghost" data-d="dm">Dummy</button><button class="ghost" data-d="x">Close</button></div></div>
-<div id="res" class="h"><h2 id="rt"></h2><p class="sub" id="rm"></p><div class="pan" id="rb"></div><div class="row"><button class="ghost go" id="rr">Rematch</button><button class="ghost" id="rl">Leave</button></div><p class="sub h" id="rw">Waiting for the host to start a rematch</p></div>
+<div id="res" class="h"><h2 id="rt"></h2><p class="sub" id="rm"></p><p class="sub" id="rst"></p><div class="pan" id="rb"></div><div class="row"><button class="ghost go" id="rr">Rematch</button><button class="ghost" id="rl">Leave</button></div><p class="sub h" id="rw">Waiting for the host to start a rematch</p></div>
 <div id="lost" class="h"><div class="pan"><b>Connection lost</b><span class="sub" id="lostn">Reconnecting...</span><button class="ghost" id="lostl">Leave match</button></div></div>
 <div id="trp" class="h"><div id="tri"></div><div class="row"><button class="ghost" data-t="dm">Dummy</button><button class="ghost" data-t="hero">Dummy hero</button><button class="ghost" data-t="heal">Heal</button><button class="ghost" data-t="rs">Reset</button><button class="ghost" data-t="cd">Cooldowns</button></div></div>
 <div id="toast" class="h"></div>
 <div id="rot"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><div>Rotate your phone<br>to play</div></div>
 <div id="home" class="ov"><h1>Martial RUMBLE</h1><canvas id="hero" width="300" height="260"></canvas><p class="sub">Overhead fighting with many styles.</p>
- <div class="nav"><button class="ghost go big h" id="rjb"></button><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="chr">Characters</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
+ <div class="nav"><button class="ghost go big h" id="rjb"></button><button class="ghost go big" id="qp">Quick Play</button><button class="ghost big" data-go="menu">Modes</button><button class="ghost big" data-go="chr">Characters</button><button class="ghost big" data-go="prof">Profile</button><button class="ghost big" data-go="opt">Options</button><button class="ghost big" data-go="ctls">Controls</button><button class="ghost big" data-go="sup">Support</button><button class="ghost big" data-go="abt">About Us</button></div></div>
 <div id="opt" class="ov h"><h2>Options</h2><div class="pan" id="optb"></div><p class="sub">Accounts arrive with ranked mode.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="ctls" class="ov h"><h2>Controls</h2><div class="pan" id="ctlb"></div>
  <div class="pan t"><span><b>Left thumb:</b> move.</span><span><b>Strike:</b> quick hit.</span><span><b>Heavy:</b> slow and strong.</span><span><b>Guard:</b> hold to block.</span><span><b>Dash:</b> quick dodge, brief safe moment.</span><span><b>Keyboard:</b> WASD, J, K, L, Space.</span></div><button class="ghost" data-go="home">Back</button></div>
 <div id="sup" class="ov h"><h2>Support</h2><div class="pan t" id="supb"></div><button class="ghost" data-go="home">Back</button></div>
 <div id="abt" class="ov h"><h2>About Us</h2><div class="pan t"><span>Martial RUMBLE is an overhead fighting game with many fighting styles, and more are on the way.</span><span>Version 1.2</span></div><button class="ghost" data-go="home">Back</button></div>
 <div id="devp" class="ov h"><h2>Developer</h2><p class="sub" id="dst"></p><input type="password" id="dkey" placeholder="Developer key" autocomplete="off" style="width:220px"><div class="row"><button class="ghost go" id="dvv">Unlock</button><button class="ghost dvx">Turn off</button></div><button class="ghost" data-go="home">Back</button></div>
+<div id="prof" class="ov h"><h2>Profile</h2><div class="pan" id="pf1"></div><div class="pan t" id="pf2"></div><div class="pan t" id="pf3"></div><div class="pan t" id="pf4"></div><button class="ghost" data-go="home">Back</button></div>
 <div id="chr" class="ov h"><h2>Characters</h2><div class="pan"><div class="st"><b id="lv"></b><b id="cn"></b></div><i class="xpb"><u id="xpu"></u></i></div><div class="pan h" id="dvb"><b style="color:#ffd84d">DEVELOPER MODE</b><span class="sub">All heroes can be selected for testing. Your unlocks, XP, coins and saved hero are not changed, and test matches earn nothing.</span><button class="ghost dvx">Turn off</button></div><div class="grid" id="grid"></div><p class="sub">Win rounds to earn XP and coins, then unlock fighters.</p><button class="ghost" data-go="home">Back</button></div>
 <div id="menu" class="ov h">
  <button class="ghost" data-go="home">Back</button><h2>Modes</h2>
@@ -185,16 +188,21 @@ let DT=SS('rdt')||'',DEV=!!DT,dk=DEV?(SS('rdk')||''):'';
 const cur=()=>DEV&&dk&&S[dk]?dk:ck;
 pick=0;$('nm').value=LS('rmn')||'';
 const SOON=['Meso','Beta Z','Xion','ABF 10'],CHARS=['ken','bob','susie','tom','guyou','tanya','rugof'],COST={tom:150,guyou:300,tanya:300,rugof:400};
-let PRG=Object.assign({xp:0,coins:0,un:['ken','bob','susie']},JSON.parse(LS('rmpr')||'{}')),ck=LS('rmk')||'ken';
+const jp=x=>{try{const v=JSON.parse(x);return v&&typeof v==='object'?v:null}catch{return null}},nn=x=>Number.isFinite(x)&&x>=0?x:0;
+function loadPrg(){const d={xp:0,coins:0,un:['ken','bob','susie']};let j=jp(LS('rmpr'));
+ if(!j){const raw=LS('rmpr');if(raw&&!LS('rmpr_bad'))LS('rmpr_bad',raw);j=jp(LS('rmpr_b'))}
+ const p=Object.assign({},d,j||{});p.xp=nn(+p.xp);p.coins=nn(+p.coins);
+ p.un=[...new Set(d.un.concat((Array.isArray(p.un)?p.un:[]).filter(k=>CHARS.includes(k))))];return p}
+let PRG=loadPrg(),ck=LS('rmk')||'ken';
 if(!PRG.un.includes(ck))ck='ken';
-const savePrg=()=>LS('rmpr',JSON.stringify(PRG));
+function savePrg(){const cur=LS('rmpr');if(cur&&jp(cur))LS('rmpr_b',cur);LS('rmpr',JSON.stringify(PRG))}
 function cards(){const bar=w=>`<i><u style="width:${Math.min(100,w)}%"></u></i>`;
  $('grid').innerHTML=CHARS.map(k=>{const t=S[k],lk0=!PRG.un.includes(k),lk=lk0&&!DEV;return `<button class="card${k===cur()?' sel':''}${lk?' lk':''}" data-c="${k}" style="--c:${t.c}"><img src="${portrait(k)}"><b>${t.n}</b><span>${lk?COST[k]+' coins':(lk0?'DEV TEST':t.t)}</span>${t.ab?'<span class="ab">'+t.ab.n+' ('+t.ab.cd+'s)</span>':''}${bar(t.hp/1.5)}${bar(t.sp/1.95)}${bar(PW[t.b]*(t.dm||1)*100)}</button>`}).join('')+SOON.map(n=>`<div class="card lk" style="--c:#666"><b>${n}</b><span>Coming soon</span></div>`).join('');
  $('grid').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=b.dataset.c;buzz(6);
   if(DEV){dk=k;SS('rdk',k)}
   else if(PRG.un.includes(k)){ck=k;LS('rmk',k)}
   else if(PRG.coins<COST[k]){sfx('err');toast('Need '+(COST[k]-PRG.coins)+' more coins')}
-  else{PRG.coins-=COST[k];PRG.un.push(k);ck=k;LS('rmk',k);savePrg();sfx('unlock');toast(S[k].n+' unlocked!')}
+  else{PRG.coins-=COST[k];PRG.un.push(k);ck=k;LS('rmk',k);savePrg();sfx('unlock');toast(S[k].n+' unlocked!');checkAch()}
   cards()});
  $('lv').textContent='Level '+(1+Math.floor(PRG.xp/200));$('cn').textContent=PRG.coins+' coins';$('xpu').style.width=(PRG.xp%200)/2+'%';
  $('chb').textContent='Fighter: '+S[cur()].n+(DEV&&dk?' [DEV]':'')+'  (change)'}
@@ -205,7 +213,7 @@ function enter(){LS('rmn',nm());LS('rmp',pick);document.querySelectorAll('.ov').
 function leave(){clearTimeout(rjT);lost(false);RJ=null;LS('rrj','');if(ws){try{if(ws.readyState===1)ws.send('{"t":"bye"}')}catch{}ws.onclose=null;ws.close()}ws=null;sim=null;mode='menu';snap=null;V=[];FX=[];TX=[];banner=null;master=false;me=-1;
  show('home');for(const i of['quit','snd','mbtn','mp','lob','dvt','dvg','res','trp'])$('#'.slice(1)+i).classList.add('h');ctl.classList.add('h')}
 $('quit').onclick=leave;$('mbtn').onclick=()=>$('mp').classList.toggle('h');
-$('pr').onclick=()=>{sim=createSim();me=pick;sim.setArena(arena);sim.setMode(gmode);if(gmode==='train'){sim.dummy[1]=1;sim.aiFill=false}sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
+$('pr').onclick=()=>{sim=createSim();me=pick;sim.setArena(arena);sim.setMode(gmode);if(gmode==='train'){sim.dummy[1]=1;sim.aiFill=false;noteTrain()}sim.setChar(me,cur());sim.dev=DEV;sim.human[me]=1;sim.names[me]=nm()||'YOU';sim.start();mode='off';master=false;code='';enter()};
 function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m))}
 function connect(first){
  if(ws)return;
@@ -236,9 +244,9 @@ function mpUpdate(){if(mode!=='on'||!snap)return;const now=performance.now();if(
  $('c-pause').textContent=snap.pa?'Resume':'Pause';$('c-ai').textContent='AI fill: '+(snap.ai?'on':'off');$('c-dmg').textContent='Damage x'+snap.dm;$('c-md').textContent='Mode: '+(snap.md==='team'?'Team 2v2':'Free-for-all');$('c-ar').textContent='Arena: '+(TH[snap.ar]||TH.dojo).n}
 /* ---- sound + haptics ---- */
 let AC=null,muted=LS('rms')==='1',banner=null,dashAt=-1e4;
-let cfg=Object.assign({vol:.4,sv:.8,hc:0,vib:1,lh:0,bs:1},JSON.parse(LS('rmc')||'{}'));
+let cfg=Object.assign({vol:.4,sv:.8,hc:0,vib:1,lh:0,bs:1},(jp(LS('rmc'))||{}));
 const buzz=n=>{if(!cfg.vib)return;try{navigator.vibrate&&navigator.vibrate(n)}catch{}};
-function show(id){document.querySelectorAll('.ov').forEach(o=>o.classList.toggle('h',o.id!==id))}
+function show(id){document.querySelectorAll('.ov').forEach(o=>o.classList.toggle('h',o.id!==id));if(id==='prof')profUI()}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{buzz(6);show(b.dataset.go)});
 $('qp').onclick=()=>{const g=gmode;if(g==='train')gmode='ffa';$('pr').click();gmode=g};
 const SU=window.RUMBLE_SUPPORT;
@@ -302,7 +310,7 @@ setInterval(musTick,150);
 function ingest(s){const pv=snap;snap=s;if(pv&&pv.p==='fight'&&s.p==='end')sfx('round');
  if(pv&&me>=0&&s.f[me]&&!s.f[me].off){
   if(pv.p==='fight'&&s.p==='end')reward(s.w[me]>pv.w[me],false);
-  else if(pv.p!=='over'&&pv.p!=='lobby'&&s.p==='over')reward(outcome(s).win,true)}
+  else if(pv.p!=='over'&&pv.p!=='lobby'&&s.p==='over'){reward(outcome(s).win,true);recordMatch(s)}}
  resUI();trUI();
  for(const e of s.e){
   if(e.e==='p'){const n=e.n||8;for(let i=0;i<n;i++){const a=Math.random()*TAU,v=(e.sp||200)*(.3+Math.random());FX.push({t:'p',x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.35,L:.35,c:e.c})}
@@ -586,13 +594,69 @@ document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{if(!sim||!snap||
 setInterval(()=>{if(!snap||snap.md!=='train'||mode!=='off')return;const z=(snap.dz&&snap.dz[1])|0;
  $('tri').textContent='Last hit '+TR.last+'   Total '+TR.tot+'   Hits '+TR.n+'   Best combo x'+TR.best;
  const q=k=>document.querySelector('[data-t='+k+']');q('dm').textContent='Dummy: '+DMN[z];q('cd').textContent='Cooldowns: '+(sim.fastCd?'Fast':'Normal');q('hero').textContent='Dummy hero: '+S[snap.f[1].k].n},250);
+
+/* ---- profile: stats, daily challenges, achievements. Stored on this phone with backup copies; nothing here ever touches your unlocks. ---- */
+const SKY='rmst';
+const DCH=[{id:'win2',t:'Win 2 matches',g:2,ev:'win',c:40},{id:'play3',t:'Play 3 matches',g:3,ev:'match',c:25},{id:'sp10',t:'Use 10 special abilities',g:10,ev:'sp',c:30},{id:'dmg300',t:'Deal 300 damage',g:300,ev:'dmg',c:30},{id:'teamwin',t:'Win a team match',g:1,ev:'teamwin',c:50},{id:'ko6',t:'Score 6 knockouts',g:6,ev:'ko',c:35}];
+const ACH=[
+ {id:'first_win',t:'First Victory',d:'Win a match',c:30,p:s=>[s.m.w,1]},
+ {id:'wins_10',t:'Veteran',d:'Win 10 matches',c:100,p:s=>[s.m.w,10]},
+ {id:'streak_3',t:'On Fire',d:'Win 3 matches in a row',c:60,p:s=>[s.st.best,3]},
+ {id:'flawless',t:'Flawless',d:'Win a match without losing a round',c:80,p:s=>[s.fl,1]},
+ {id:'untouch',t:'Untouchable',d:'Win a match taking under 25 damage',c:80,p:s=>[s.ut,1]},
+ {id:'sp_25',t:'Special Forces',d:'Use 25 special abilities',c:40,p:s=>[s.sp,25]},
+ {id:'dmg_1000',t:'Heavy Hitter',d:'Deal 1000 damage',c:60,p:s=>[Math.floor(s.dmg),1000]},
+ {id:'team_win',t:'Team Player',d:'Win a team match',c:50,p:s=>[(s.modes.team||{w:0}).w,1]},
+ {id:'hopper',t:'Hero Hopper',d:'Win with 3 different heroes',c:70,p:s=>[Object.values(s.heroes).filter(h=>h.w>0).length,3]},
+ {id:'explorer',t:'Arena Explorer',d:'Fight in all 5 arenas',c:50,p:s=>[Object.keys(s.arenas).length,5]},
+ {id:'collector',t:'Collector',d:'Unlock all 7 heroes',c:100,p:s=>[PRG.un.length,7]},
+ {id:'trainee',t:'Dedicated',d:'Try Training mode',c:20,p:s=>[s.tr,1]}];
+function newStats(){return{v:1,m:{n:0,w:0,l:0,d:0},st:{cur:0,best:0},dmg:0,tkn:0,hits:0,sp:0,ko:0,fl:0,ut:0,tr:0,heroes:{},arenas:{},modes:{},ach:{},daily:{day:'',ch:[]}}}
+function cleanStats(j){if(!j||j.v!==1)return null;const b=newStats();
+ for(const k of['dmg','tkn','hits','sp','ko','fl','ut','tr'])b[k]=nn(j[k]);
+ for(const k of['n','w','l','d'])b.m[k]=nn(j.m&&j.m[k]);b.st.cur=nn(j.st&&j.st.cur);b.st.best=nn(j.st&&j.st.best);
+ for(const k in(j.heroes||{}))if(S[k]&&S[k].b)b.heroes[k]={n:nn(j.heroes[k].n),w:nn(j.heroes[k].w)};
+ for(const k in(j.arenas||{}))if(TH[k])b.arenas[k]=1;
+ for(const k of['ffa','team','train'])if(j.modes&&j.modes[k])b.modes[k]={n:nn(j.modes[k].n),w:nn(j.modes[k].w)};
+ for(const k in(j.ach||{}))if(ACH.some(a=>a.id===k))b.ach[k]=nn(j.ach[k])||1;
+ if(j.daily&&typeof j.daily.day==='string'&&Array.isArray(j.daily.ch))b.daily={day:j.daily.day,ch:j.daily.ch.filter(c=>DCH.some(d=>d.id===c.id)).map(c=>({id:c.id,p:nn(c.p),done:c.done?1:0}))};
+ return b}
+function loadStats(){let s=cleanStats(jp(LS(SKY)));if(!s){const raw=LS(SKY);if(raw&&!LS(SKY+'_bad'))LS(SKY+'_bad',raw);s=cleanStats(jp(LS(SKY+'_b')))||newStats()}return s}
+function saveStats(s){const cur=LS(SKY);if(cur&&cleanStats(jp(cur)))LS(SKY+'_b',cur);LS(SKY,JSON.stringify(s))}
+// daily challenges: three per day, the same for everyone that day (picked from the date), reset at 00:00 UTC
+function dayKey(){return new Date().toISOString().slice(0,10)}
+function pickDaily(day){let h=0;for(const ch of day)h=(h*31+ch.charCodeAt(0))>>>0;const a=DCH.slice(),o=[];while(o.length<3){h=(h*1664525+1013904223)>>>0;o.push(a.splice(h%a.length,1)[0].id)}return o}
+function dailyState(S0){const day=dayKey();if(S0.daily.day!==day||S0.daily.ch.length!==3)S0.daily={day,ch:pickDaily(day).map(id=>({id,p:0,done:0}))};return S0.daily}
+function dailyProgress(S0,ev,pay){for(const c of dailyState(S0).ch){if(c.done)continue;const d=DCH.find(x=>x.id===c.id),add=ev[d.ev]||0;if(!add)continue;c.p=Math.min(d.g,c.p+add);if(c.p>=d.g){c.done=1;pay.push({c:d.c,t:'Daily: '+d.t})}}}
+function achCheck(S0,pay){for(const a of ACH){if(S0.ach[a.id])continue;const r=a.p(S0);if(r[0]>=r[1]){S0.ach[a.id]=Date.now();pay.push({c:a.c,t:'Achievement: '+a.t})}}}
+// the progress is saved FIRST and the coins are added AFTER, so a crash can lose a reward but can never pay it twice
+function payout(pay){if(!pay.length)return;let c=0;for(const p of pay)c+=p.c;PRG.coins+=c;savePrg();toast(pay.map(p=>p.t).join(' | ')+'  +'+c+' coins');cards()}
+function checkAch(){const S0=loadStats(),pay=[];achCheck(S0,pay);if(pay.length){saveStats(S0);payout(pay)}}
+function noteTrain(){const S0=loadStats(),pay=[];S0.tr++;achCheck(S0,pay);saveStats(S0);payout(pay)}
+function recordMatch(s){if(DEV||me<0||!s.f[me]||s.f[me].off||s.md==='train')return;
+ const o=outcome(s),win=o.win,draw=o.ch<0,st=(s.st&&s.st[me])||[0,0,0,0,0],k=s.f[me].k,S0=loadStats(),pay=[];
+ S0.m.n++;if(win)S0.m.w++;else if(draw)S0.m.d++;else S0.m.l++;
+ S0.st.cur=win?S0.st.cur+1:draw?S0.st.cur:0;S0.st.best=Math.max(S0.st.best,S0.st.cur);
+ S0.dmg+=st[0];S0.tkn+=st[1];S0.hits+=st[2];S0.sp+=st[3];S0.ko+=st[4];
+ const h=S0.heroes[k]=S0.heroes[k]||{n:0,w:0};h.n++;if(win)h.w++;
+ if(TH[s.ar])S0.arenas[s.ar]=1;const md=S0.modes[s.md]=S0.modes[s.md]||{n:0,w:0};md.n++;if(win)md.w++;
+ const others=s.tm?[s.w[s.tm[me]?0:2]]:s.w.filter((x,i)=>i!==me&&!s.f[i].off);
+ if(win&&others.every(x=>x===0))S0.fl++;if(win&&st[1]<25)S0.ut++;
+ dailyProgress(S0,{match:1,win:win?1:0,sp:st[3],dmg:st[0],ko:st[4],teamwin:win&&s.md==='team'?1:0},pay);achCheck(S0,pay);
+ saveStats(S0);payout(pay)}
+function profUI(){const S0=loadStats(),dl=dailyState(S0);saveStats(S0);const m=S0.m,rate=m.n?Math.round(100*m.w/m.n):0;
+ const fav=Object.entries(S0.heroes).sort((a,b)=>b[1].n-a[1].n)[0];
+ $('pf1').innerHTML='<div class="st"><b>Level '+(1+Math.floor(PRG.xp/200))+'</b><b>'+PRG.coins+' coins</b></div><div class="pg"><span>Matches</span><b>'+m.n+'</b><span>Wins / losses / draws</span><b>'+m.w+' / '+m.l+' / '+m.d+'</b><span>Win rate</span><b>'+rate+'%</b><span>Win streak (best)</span><b>'+S0.st.cur+' ('+S0.st.best+')</b><span>Damage dealt / taken</span><b>'+Math.round(S0.dmg)+' / '+Math.round(S0.tkn)+'</b><span>Specials used</span><b>'+S0.sp+'</b><span>Knockouts</span><b>'+S0.ko+'</b><span>Favourite hero</span><b>'+(fav?S[fav[0]].n:'-')+'</b></div>';
+ $('pf2').innerHTML='<b>Daily challenges</b><span class="sub">Reset at 00:00 UTC</span>'+dl.ch.map(c=>{const d=DCH.find(x=>x.id===c.id);return '<div class="pr"><div class="st"><span>'+d.t+' (+'+d.c+')</span><b>'+(c.done?'Done':Math.floor(c.p)+' / '+d.g)+'</b></div><i class="xpb"><u style="width:'+Math.round(100*c.p/d.g)+'%"></u></i></div>'}).join('');
+ $('pf3').innerHTML='<b>Achievements ('+Object.keys(S0.ach).length+' / '+ACH.length+')</b>'+ACH.map(a=>{const r=a.p(S0),got=S0.ach[a.id];return '<div class="st"><span>'+(got?'\u2713 ':'')+'<b>'+a.t+'</b> <i class="sub">'+a.d+'</i></span><b>'+(got?'+'+a.c:Math.min(r[0],r[1])+' / '+r[1])+'</b></div>'}).join('');
+ $('pf4').innerHTML='<b>Hero mastery</b>'+CHARS.map(k=>{const h=S0.heroes[k]||{n:0,w:0};return '<div class="st"><span style="color:'+S[k].c+'"><b>'+S[k].n+'</b></span><b>Mastery '+(1+Math.floor(h.w/3))+'  <i class="sub">'+h.w+' wins / '+h.n+' matches</i></b></div>'}).join('')}
 /* ---- match results screen ---- */
 let resKey='',resSnd=false;
 function resUI(){const o=!!snap&&snap.p==='over';$('res').classList.toggle('h',!o);if(!o){resKey='';resSnd=false;return}
  const key=snap.w.join()+snap.m+master;if(key===resKey)return;resKey=key;
  const oc=outcome(snap);
  $('rt').textContent=oc.ch<0?'Draw':oc.win?'Victory!':me>=0?'Defeat':'Match over';
- $('rm').textContent=snap.m;if(!resSnd){resSnd=true;sfx(oc.ch<0?'draw':oc.win?'win':'lose')}
+ $('rm').textContent=snap.m;{const q=me>=0&&snap.st&&snap.st[me];$('rst').textContent=q?'Your match: dealt '+q[0]+' damage \u00b7 took '+q[1]+' \u00b7 '+q[2]+' hits \u00b7 '+q[3]+' specials \u00b7 '+q[4]+' KOs':''}if(!resSnd){resSnd=true;sfx(oc.ch<0?'draw':oc.win?'win':'lose')}
  $('rb').innerHTML=snap.f.map((f,i)=>({f,i})).filter(o=>!o.f.off).sort((a,b)=>snap.w[b.i]-snap.w[a.i]).map(o=>'<div class="st"><span style="color:'+S[o.f.k].c+'">'+(snap.tm?'<i>'+(snap.tm[o.i]?'Red':'Blue')+'</i> ':'')+'<b>'+o.f.n+'</b> '+S[o.f.k].n+(o.i===me?' (you)':'')+'</span><b>'+snap.w[o.i]+' / '+(snap.tg||3)+'</b></div>').join('');
  const host=mode==='off'||master;$('rr').classList.toggle('h',!host);$('rw').classList.toggle('h',host)}
 $('rr').onclick=()=>{if(mode==='off')sim.start();else cmd('start')};
