@@ -16,7 +16,8 @@ mt:{n:'Muay Thai',c:'#f59e0b',hair:'#2a1b12',band:'#fde68a',hp:110,sp:150,g:.6,i
  L:{n:'Kick',dmg:9,rng:58,arc:1.3,w:.12,a:.06,r:.22,kb:190,stun:.2},
  H:{n:'Clinch',dmg:0,rng:52,arc:1.5,w:.18,a:.06,r:.25,clinch:1,lg:60}}};
 const ORDER=['kyo','box','tai','mt'],DEF=['ken','bob','susie','tom'];
-for(const k of ORDER)S[k].b=k;
+const CM={kyo:{n:['Low Kick','Mid Kick','Axe Kick'],f:{dmg:1.9,kb:2,stun:.3}},box:{n:['Jab','Jab','Cross'],f:{dmg:2,kb:2,stun:.3}},tai:{n:['Palm','Palm','Wave Push'],f:{dmg:1.3,kb:2.6,stun:.25}},mt:{n:['Kick','Knee','Elbow'],f:{dmg:1.8,kb:1.2,stun:.5}}};
+for(const k of ORDER){S[k].b=k;S[k].cm=CM[k]}
 const mod=(b,o)=>Object.assign({},S[b],{b},o);
 S.ken=mod('kyo',{n:'Ken',t:'Balanced karate'});
 S.bob=mod('box',{n:'Bob',t:'Fast boxer'});
@@ -36,26 +37,26 @@ S.rugof=mod('mt',{n:'Rugof',t:'Heavy clincher',c:'#14b8a6',hair:'#0f2b2a',band:'
 const sym4=l=>{const o=[];for(const[x,y,r,t]of l)for(let k=0;k<4;k++){const c=Math.cos(k*Math.PI/2),s=Math.sin(k*Math.PI/2);o.push({x:Math.round((x*c-y*s)*10)/10,y:Math.round((x*s+y*c)*10)/10,r,t})}return o};
 const ARENAS={
  dojo:{n:'Training Dojo',obs:sym4([[105,0,24,'crate']])},
- cyber:{n:'Cyber Alley',obs:[{x:0,y:0,r:30,t:'pillar'}].concat(sym4([[185,0,16,'pillar']]))},
- sky:{n:'Sky Temple',obs:sym4([[135,0,14,'pillar'],[75,75,14,'pillar']])},
- rooftop:{n:'Urban Rooftop',obs:sym4([[70,70,22,'crate'],[0,165,15,'barrel']])},
- club:{n:'Fight Club',obs:sym4([[60,0,18,'barrel'],[155,0,17,'barrel']])}};
+ cyber:{n:'Cyber Alley',hz:{zap:1},obs:[{x:0,y:0,r:30,t:'pillar'}].concat(sym4([[185,0,16,'pillar']]))},
+ sky:{n:'Sky Temple',hz:{cliff:1,wind:1},obs:sym4([[135,0,14,'pillar'],[75,75,14,'pillar']])},
+ rooftop:{n:'Urban Rooftop',hz:{vent:1},obs:sym4([[70,70,22,'crate'],[0,165,15,'barrel']])},
+ club:{n:'Fight Club',hz:{shrink:1},obs:sym4([[60,0,18,'barrel'],[155,0,17,'barrel']])}};
 Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom});for(const k in AB)S[k].ab=AB[k];
 const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 const r1=v=>Math.round(v*10)/10;
 
 function createSim(){
- const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],arena:'dojo',obs:ARENAS.dojo.obs,nextAr:null,mode:'ffa',team:[0,0,1,1],tw:[0,0],nextMd:null,fastCd:false,stats:[0,1,2,3].map(()=>({d:0,t:0,h:0,s:0,k:0})),dev:false,target:3,maxRd:7,rt:60,ft:0};
+ const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],arena:'dojo',obs:ARENAS.dojo.obs,nextAr:null,mode:'ffa',team:[0,0,1,1],tw:[0,0],nextMd:null,fastCd:false,clock:0,hz:[],zt:4,vt:3,wn:{s:0,t:7,dx:0,dy:0},rr:R,stats:[0,1,2,3].map(()=>({d:0,t:0,h:0,s:0,k:0})),dev:false,target:3,maxRd:7,rt:60,ft:0};
  const E=o=>sim.ev.push(o);
  const nm=i=>sim.human[i]||sim.away[i]?sim.names[i]:(sim.dummy[i]?'Dummy':'CPU');
  function foe(a,b){return a!==b&&!(sim.mode==='team'&&sim.team[a.i]===sim.team[b.i])}   // teammates are never targets and never take damage
  function near(f){let b=null,bd=1e9;for(const e of sim.F)if(foe(f,e)&&!e.ko){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
  function mk(i,k){const s=S[k],a=i*TAU/4+TAU/8;
-  return{i,k,s,x:Math.cos(a)*170,y:Math.sin(a)*170,vx:0,vy:0,dx:0,dy:0,face:a+Math.PI,hp:s.hp,max:s.hp,stun:0,slow:0,inv:0,dashT:0,dashCd:0,lock:0,atk:null,gT:-1,combo:0,comboT:0,clinch:null,ko:false,off:false,buf:null,bufT:0,limb:1,spCd:3,buff:0,bf:0,sa:null,in:{mx:0,my:0,guard:false},
+  return{i,k,s,x:Math.cos(a)*170,y:Math.sin(a)*170,vx:0,vy:0,dx:0,dy:0,face:a+Math.PI,hp:s.hp,max:s.hp,stun:0,slow:0,inv:0,dashT:0,dashCd:0,lock:0,atk:null,gT:-1,combo:0,comboT:0,cs:0,cT:0,cc:0,ccT:0,fell:0,lh:null,clinch:null,ko:false,off:false,buf:null,bufT:0,limb:1,spCd:3,buff:0,bf:0,sa:null,in:{mx:0,my:0,guard:false},
   ai:{t:.8+Math.random(),sw:0,sd:1,gu:0,sk:.3+Math.random()*.4,ag:.7+Math.random()*.5}}}
  function build(all){sim.F=ORDER.map((_,i)=>{const f=mk(i,sim.chars[i]);if(!all&&!sim.human[i]&&!sim.away[i]&&!sim.aiFill&&!sim.dummy[i])f.off=f.ko=true;return f})}
  const active=()=>ORDER.filter((k,i)=>sim.human[i]||sim.away[i]||sim.aiFill||sim.dummy[i]).length;
- function round(){if(active()<2){sim.lobby();return}sim.rd++;sim.ft=0;build(false);sim.ph='count';sim.pt=3;sim.msg=''}
+ function round(){if(active()<2){sim.lobby();return}sim.rd++;sim.ft=0;resetHz();build(false);sim.ph='count';sim.pt=3;sim.msg=''}
  function check(){if(sim.ph!=='fight'||sim.mode==='train')return;const al=sim.F.filter(f=>!f.off&&!f.ko);
   if(sim.mode==='team'){const alive=t=>al.filter(f=>sim.team[f.i]===t);
    if(!alive(0).length||!alive(1).length)endRound(alive(0)[0]||alive(1)[0]||null,false);
@@ -76,9 +77,10 @@ function createSim(){
   if(top>=sim.target||sim.rd>=sim.maxRd){const ch=top>0&&sim.wins.filter(x=>x===top).length===1?sim.wins.indexOf(top):-1;
    sim.ph='over';sim.pt=0;sim.msg=ch>=0?nm(ch)+' wins the match!':'Match drawn'}}
  function hurt(a,v,dmg,kb,stun,slow,blk){
-  {const hv=a.atk&&a.atk.d===a.s.H;E({e:'sx',k:blk?'block':(a.s.b==='kyo'||(a.s.b==='mt'&&!hv)?'kick':'punch'),h:(hv||dmg>16)?1:0})}
+  {const hv=a.atk&&a.atk.d===a.s.H;E({e:'sx',k:blk?'block':(a.s.b==='kyo'||(a.s.b==='mt'&&!hv)?'kick':'punch'),h:(hv||dmg>16)?1:0,c:a.cc|0})}
   dmg*=sim.dmgM;if(v.buff>0&&v.bf==='iron'){dmg*=.4;kb*=.2;stun=0;slow=0}
   {const rd=Math.min(Math.max(v.hp,0),dmg),A=sim.stats[a.i],V=sim.stats[v.i];if(A){A.d+=rd;A.h++}if(V)V.t+=rd}
+  v.cc=0;v.ccT=0;v.cT=0;v.cs=0;v.lh={by:a.i,t:sim.clock};
   v.hp-=dmg;v.stun=Math.max(v.stun,stun);if(slow)v.slow=Math.max(v.slow,slow);
   const an=Math.atan2(v.y-a.y,v.x-a.x);v.vx+=Math.cos(an)*kb;v.vy+=Math.sin(an)*kb;
   if(stun>=.3){v.atk=null;v.clinch=null;v.sa=null}
@@ -90,14 +92,22 @@ function createSim(){
  function hit(a,v,d,dist){
   let dmg=d.dmg*(a.s.dm||1)*(a.buff>0&&a.bf==='od'?1.2:1),lab=d.n,kb=d.kb,stun=d.stun;
   if(a.s.b==='mt'&&d===a.s.L&&dist<34){dmg*=1.5;lab='Elbow'}
-  if(a.s.b==='box'&&d===a.s.L){a.combo=a.comboT>0?a.combo+1:1;a.comboT=.8;if(a.combo%3===0){dmg*=2;kb*=2;stun=.3;lab='Cross'}}
+  // combo chain: light, light, light-finisher (or light then heavy as an ender). Landing the finisher ends the chain and knocks the foe away.
+  const A0=a.atk,st=A0?A0.st|0:0,isL=d===a.s.L;let fin=false;
+  if(isL){lab=a.s.cm.n[Math.min(2,st)];if(st>=2){const F=a.s.cm.f;dmg*=F.dmg;kb*=F.kb;stun=Math.max(stun,F.stun);fin=true}}
+  else if(st>=1){dmg*=1.35;lab='Chain '+d.n}
+  if(v.atk&&!v.atk.hit&&v.atk.t<v.atk.d.w){dmg*=1.25;stun+=.08;E({e:'t',x:v.x,y:v.y-46,s:'Counter!',c:'#fda4af'})}   // hitting someone who is winding up
+  const nC=(a.ccT>0?a.cc:0)+1;if(nC>=4)dmg*=Math.max(.5,1-.12*(nC-3));                                                  // long combos do less and less
   const fa=Math.atan2(a.y-v.y,a.x-v.x);
   if(v.gT>=0&&Math.abs(ad(fa,v.face))<1.3){
    if(v.s.b==='tai'&&v.gT<.3){a.stun=.9;a.atk=null;a.clinch=null;a.vx+=Math.cos(fa)*380;a.vy+=Math.sin(fa)*380;v.hp=Math.min(v.max,v.hp+5);
     E({e:'sx',k:'block',h:1});E({e:'t',x:v.x,y:v.y-26,s:'Parry!',c:'#6ee7b7'});E({e:'p',x:v.x,y:v.y,c:'#6ee7b7',n:14});E({e:'sh',v:8});sim.hs=.07;return}
    hurt(a,v,dmg*(1-v.s.g*(d.gb||1)),kb*.3,0,0,true);return}
+  a.cc=nC;a.ccT=1.2;if(A0)A0.ld=true;
+  if(fin||!isL){a.cT=0;a.cs=0}else{a.cs=st;a.cT=.55}
   hurt(a,v,dmg,kb,stun,d.slow||0);
-  if(lab!==d.n||d===a.s.H)E({e:'t',x:v.x,y:v.y-34,s:lab,c:'#ffd27a'})}
+  if(nC>=8){v.inv=Math.max(v.inv,.45);a.cc=0;a.ccT=0;a.cT=0;a.cs=0;E({e:'t',x:v.x,y:v.y-46,s:'Combo break!',c:'#a5f3fc'})}   // no combo can go on for ever
+  if(lab!==d.n||d===a.s.H||st>=1)E({e:'t',x:v.x,y:v.y-34,s:lab,c:'#ffd27a'})}
  function resolve(f,d){
   E({e:'w',x:f.x,y:f.y,a:f.face,r:d.rng,arc:d.arc,c:f.s.c,k:f.s.b,h:d===f.s.H?1:0});
   if(d.clinch){let b=null,bd=1e9;for(const e of sim.F){if(!foe(f,e)||e.ko||e.inv>0)continue;const dx=e.x-f.x,dy=e.y-f.y,dd=Math.hypot(dx,dy);
@@ -130,10 +140,35 @@ function createSim(){
  // ---- obstacles: fighters slide around them and can never end up inside one ----
  const TN=['Blue Team','Red Team'];
  function tRevive(dt){for(const f of sim.F){if(f.off)continue;if(f.ko){f.kot=(f.kot||0)+dt;if(f.kot>1.6){const n=mk(f.i,sim.chars[f.i]);n.spCd=0;Object.assign(f,n);f.kot=0}}else f.kot=0}}
+ // ---- arena hazards. Everything runs here (on the server online), so every player sees and suffers the same thing.
+ function resetHz(){sim.hz=[];sim.zt=4;sim.vt=3;sim.wn={s:0,t:7,dx:0,dy:0};sim.rr=R}
+ function koEnv(f,txt){f.hp=0;f.ko=true;f.atk=null;f.sa=null;f.clinch=null;const l=f.lh;if(l&&sim.clock-l.t<3&&sim.stats[l.by])sim.stats[l.by].k++;
+  E({e:'t',x:f.x,y:f.y-34,s:txt,c:'#ff5a4d'});E({e:'sh',v:14});sim.hs=.12;check()}
+ function envHit(f,dmg,stun,kx,ky){if(f.ko||f.off)return;const V=sim.stats[f.i];if(V)V.t+=Math.min(f.hp,dmg);f.hp-=dmg;f.stun=Math.max(f.stun,stun);f.atk=null;f.sa=null;f.clinch=null;f.vx+=kx;f.vy+=ky;f.cc=0;f.ccT=0;f.cT=0;f.cs=0;
+  E({e:'t',x:f.x,y:f.y-18,s:Math.round(dmg),c:'#fde047'});E({e:'sh',v:dmg/3});if(f.hp<=0)koEnv(f,'KO!')}
+ function fall(f){f.fell=1;E({e:'sx',k:'fall'});E({e:'fall',x:f.x,y:f.y,i:f.i});koEnv(f,'Ring out!')}
+ // the edge: normally a wall. On a cliff arena a fighter who is being knocked back (or flying) past the rim falls off; walking never does.
+ function edge(f){const H=ARENAS[sim.arena].hz||{},d=Math.hypot(f.x,f.y);if(f.fell)return;
+  if(H.cliff&&!f.ko&&(f.stun>0||f.dashT>0||f.sa||Math.hypot(f.vx,f.vy)>140)){if(d>R+14){fall(f);return}const lim=R+40;if(d>lim){f.x*=lim/d;f.y*=lim/d}return}
+  const rim=Math.min(R-16,sim.rr-16);if(d>rim){f.x*=rim/d;f.y*=rim/d}}
+ function hazards(dt){const H=ARENAS[sim.arena].hz||{};
+  if(H.shrink)sim.rr=R-65*Math.max(0,Math.min(1,(sim.ft-40)/20));        // sudden death: after 40s the ring closes in
+  if(H.zap){sim.zt-=dt;if(sim.zt<=0){sim.zt=6+Math.random()*2;const a=Math.random()*TAU,r=40+Math.random()*180;sim.hz.push({k:'zap',x:Math.cos(a)*r,y:Math.sin(a)*r,r:44,t:1.1,T:1.1});E({e:'sx',k:'hz_warn'})}}
+  if(H.vent){sim.vt-=dt;if(sim.vt<=0){sim.vt=4;sim.vp=(sim.vp|0)^1;for(const[x,y]of sim.vp?[[100,0],[-100,0]]:[[0,100],[0,-100]])sim.hz.push({k:'vent',x,y,r:40,t:1,T:1});E({e:'sx',k:'hz_warn'})}}
+  if(H.wind){const w=sim.wn;w.t-=dt;
+   if(w.s===0&&w.t<=0){const a=Math.floor(Math.random()*8)*Math.PI/4;w.s=1;w.t=1.3;w.dx=Math.cos(a);w.dy=Math.sin(a);E({e:'sx',k:'gust'})}
+   else if(w.s===1&&w.t<=0){w.s=2;w.t=2.2}
+   else if(w.s===2){for(const f of sim.F)if(!f.ko&&!f.off){f.vx+=w.dx*560*dt;f.vy+=w.dy*560*dt}if(w.t<=0){w.s=0;w.t=8+Math.random()*3}}}
+  for(const o of sim.hz){o.t-=dt;if(o.t<=0&&!o.done){o.done=true;
+   for(const f of sim.F){if(f.ko||f.off||f.inv>0)continue;const dx=f.x-o.x,dy=f.y-o.y,d=Math.hypot(dx,dy);if(d>=o.r)continue;
+    if(o.k==='zap')envHit(f,14,.45,0,0);else{const n=d>1?1/d:0;envHit(f,5,.25,(n?dx*n:1)*640,(n?dy*n:0)*640)}}
+   E({e:'sx',k:o.k==='zap'?'zap':'vent'})}}
+  sim.hz=sim.hz.filter(o=>o.t>-.35)}
+ function aiChain(f,dt){if(f.buf||f.stun>0||!f.atk||!f.atk.ld)return;if(f.cT>0&&Math.random()<dt*7){const r=Math.random();f.buf=f.cs>=1&&r<.35?'heavy':(f.spCd<=0&&f.s.ab&&r<.2?'special':'light');f.bufT=.3}}
  function applyAr(){if(sim.nextMd){sim.mode=sim.nextMd;sim.nextMd=null}if(sim.nextAr){sim.arena=sim.nextAr;sim.obs=ARENAS[sim.arena].obs;sim.nextAr=null}}
  function solve(f){for(const o of sim.obs){const dx=f.x-o.x,dy=f.y-o.y,m=o.r+15,d=Math.hypot(dx,dy);
    if(d<m){const nx=d>1e-3?dx/d:1,ny=d>1e-3?dy/d:0;f.x=o.x+nx*m;f.y=o.y+ny*m;const vn=f.vx*nx+f.vy*ny;if(vn<0){f.vx-=vn*nx;f.vy-=vn*ny}}}
-  clampA(f)}
+  edge(f)}
  // CPU fighters steer around obstacles so they don't get stuck behind them
  function aiAvoid(f){const i=f.in;let mx=i.mx,my=i.my;if(!mx&&!my)return;
   let near=false;
@@ -145,8 +180,8 @@ function createSim(){
   const l=Math.hypot(mx,my)||1;i.mx=mx/l;i.my=my/l}
  function upd(f,dt){
   if(f.ko){f.x+=f.vx*dt;f.y+=f.vy*dt;const q=Math.pow(.02,dt);f.vx*=q;f.vy*=q;return}
-  for(const k of['stun','slow','inv','dashCd','lock','comboT','spCd','buff'])f[k]=Math.max(0,f[k]-dt);
-  f.bufT-=dt;if(f.bufT<=0)f.buf=null;
+  for(const k of['stun','slow','inv','dashCd','lock','comboT','spCd','buff','cT','ccT'])f[k]=Math.max(0,f[k]-dt);
+  f.bufT-=dt;if(f.bufT<=0)f.buf=null;if(f.ccT<=0)f.cc=0;
   const I=f.in,t=near(f);let mvx=0,mvy=0;
   if(f.clinch){const c=f.clinch,v=c.v;
    if(v.ko||f.stun>0)f.clinch=null;
@@ -154,6 +189,9 @@ function createSim(){
     if(c.t>=(c.n+1)*.26){if(c.n<3){c.n++;hurt(f,v,7,0,.2,0);E({e:'t',x:v.x,y:v.y-34,s:'Knee',c:'#f59e0b'})}else{hurt(f,v,9,460,.5,0);f.clinch=null;f.lock=.3}}}}
   let want=f.face;if(t)want=Math.atan2(t.y-f.y,t.x-f.x);else if(Math.hypot(I.mx,I.my)>.2)want=Math.atan2(I.my,I.mx);
   if(!f.atk||f.atk.t<f.atk.d.w){const m=14*dt;f.face+=Math.max(-m,Math.min(m,ad(want,f.face)))}
+  // cancels: once an attack has landed you may cut its recovery short into a dash, a special or (from a light) a heavy
+  if(f.atk&&f.atk.ld&&f.stun<=0&&f.buf&&f.atk.t>=f.atk.d.w+f.atk.d.a*.5){const b=f.buf;
+   if((b==='dash'&&f.dashCd<=0)||(b==='special'&&f.spCd<=0&&f.s.ab)||(b==='heavy'&&f.atk.d===f.s.L)||(b==='light'&&f.atk.d===f.s.L&&f.cT>0&&f.atk.t>=f.atk.d.w+f.atk.d.a+f.atk.d.r*.6)){f.atk=null;f.lock=0}}
   const free=f.stun<=0&&!f.atk&&!f.clinch&&f.dashT<=0&&f.lock<=0&&!f.sa;
   if(free){
    if(I.guard)f.gT=f.gT<0?0:f.gT+dt;else f.gT=-1;
@@ -162,13 +200,14 @@ function createSim(){
     if(b==='dash'){if(f.dashCd<=0){E({e:'sx',k:'dash'});f.dashT=.18;f.inv=.22;f.dashCd=.9;f.gT=-1;let dx=I.mx,dy=I.my;if(Math.hypot(dx,dy)<.2){dx=-Math.cos(f.face);dy=-Math.sin(f.face)}
      const l=Math.hypot(dx,dy);f.dx=dx/l;f.dy=dy/l;E({e:'p',x:f.x,y:f.y,c:'#ffffff77',n:5,sp:80})}}
     else if(b==='special')doSpecial(f);
-    else{f.atk={d:b==='light'?f.s.L:f.s.H,t:0,hit:false};f.limb*=-1;f.gT=-1}}
+    else{const lt=b==='light',stg=lt?(f.cT>0?Math.min(2,f.cs+1):0):(f.cT>0?Math.max(1,f.cs):0),mv=lt?f.s.L:f.s.H;
+     f.atk={d:mv,t:stg>=1&&lt?mv.w*.45:0,hit:false,st:stg,ld:false};f.limb*=-1;f.gT=-1}}
   }else if(!f.atk||f.stun>0)f.gT=-1;
   if(f.dashT>0){f.dashT=Math.max(0,f.dashT-dt);mvx=f.dx*480;mvy=f.dy*480}
   if(f.sa){const m=spec(f,dt);mvx=m[0];mvy=m[1]}
   if(f.atk&&f.stun<=0){const A=f.atk,d=A.d;A.t+=dt*(f.buff>0&&f.bf==='od'?1.3:1);
    if(!A.hit&&A.t>=d.w){A.hit=true;const lg=d.lg||90;f.vx+=Math.cos(f.face)*lg;f.vy+=Math.sin(f.face)*lg;resolve(f,d)}
-   if(f.atk&&A.t>=d.w+d.a+d.r)f.atk=null}
+   if(f.atk&&A.t>=d.w+d.a+d.r){if(!A.ld)f.cT=0;f.atk=null}}
   f.x+=(mvx+f.vx)*dt;f.y+=(mvy+f.vy)*dt;const q=Math.pow(.004,dt);f.vx*=q;f.vy*=q}
  function ai(f,dt){const a=f.ai,i=f.in;i.mx=i.my=0;i.guard=false;const t=near(f);if(!t)return;
   const dx=t.x-f.x,dy=t.y-f.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d;a.t-=dt;a.sw-=dt;a.gu-=dt;
@@ -200,18 +239,18 @@ function createSim(){
   const fight=sim.ph==='fight';
   for(const f of sim.F){if(f.ko)continue;
    if(!fight){f.in.mx=f.in.my=0;f.in.guard=false;f.buf=null}
-   else if(!sim.human[f.i]){if(sim.dummy[f.i]){f.in.mx=f.in.my=0;f.in.guard=sim.dummy[f.i]===2}else{ai(f,dt);aiAvoid(f);aiSpec(f,dt)}}}
+   else if(!sim.human[f.i]){if(sim.dummy[f.i]){f.in.mx=f.in.my=0;f.in.guard=sim.dummy[f.i]===2}else{ai(f,dt);aiAvoid(f);aiSpec(f,dt);aiChain(f,dt)}}}
   for(const f of sim.F)upd(f,dt);
   const F=sim.F;
   for(let i=0;i<4;i++)for(let j=i+1;j<4;j++){const a=F[i],b=F[j];if(a.ko||b.ko||(a.clinch&&a.clinch.v===b)||(b.clinch&&b.clinch.v===a))continue;
    let dx=b.x-a.x,dy=b.y-a.y;const d=Math.hypot(dx,dy)||1;if(d<30){const p=(30-d)/2;dx/=d;dy/=d;a.x-=dx*p;a.y-=dy*p;b.x+=dx*p;b.y+=dy*p}}
   for(const f of F){solve(f);solve(f)}
   if(sim.ph==='count'){sim.pt-=dt;if(sim.pt<=0){sim.ph='fight';sim.ft=0}}
-  else if(sim.ph==='fight'){sim.ft+=dt;check();if(sim.mode==='train')tRevive(dt)}
+  else if(sim.ph==='fight'){sim.ft+=dt;sim.clock+=dt;check();if(sim.mode==='train')tRevive(dt);else hazards(dt)}
   else if(sim.ph==='end'){sim.pt-=dt;if(sim.pt<=0)round()}};
- sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,ar:sim.arena,md:sim.mode,st:sim.ph==='over'?sim.stats.map(x=>[Math.round(x.d),Math.round(x.t),x.h,x.s,x.k]):0,tm:sim.mode==='team'?sim.team:0,dz:sim.dummy,w:sim.wins,
+ sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,ar:sim.arena,hz:sim.hz.map(o=>[o.k==='zap'?0:1,Math.round(o.x),Math.round(o.y),o.r,Math.round(o.t*100)/100,o.T]),wd:sim.wn.s?[sim.wn.s,sim.wn.dx,sim.wn.dy]:0,rr:Math.round(sim.rr),md:sim.mode,st:sim.ph==='over'?sim.stats.map(x=>[Math.round(x.d),Math.round(x.t),x.h,x.s,x.k]):0,tm:sim.mode==='team'?sim.team:0,dz:sim.dummy,w:sim.wins,
   f:sim.F.map(f=>({k:f.k,n:nm(f.i),h:sim.human[f.i]?1:0,x:r1(f.x),y:r1(f.y),a:Math.round(f.face*100)/100,hp:Math.round(f.hp),mx:f.max,
-   ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),aw:sim.away[f.i]?1:0,bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
+   ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),aw:sim.away[f.i]?1:0,fl:f.fell?1:0,cc:f.ccT>0&&f.cc>1?f.cc:0,bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
    at:f.atk?{d:f.atk.d===f.s.H?'H':'L',t:Math.round(f.atk.t*1000)/1000,l:f.limb}:0})),e:sim.ev};
   sim.ev=[];return s};
  sim.lobby();
