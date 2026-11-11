@@ -10,7 +10,7 @@ const devOk=t=>{if(!DEV_KEY||!t)return false;const e=DEVT.get(String(t));if(!e)r
 // Ownership hook: unlocks are stored on each phone today, so the server cannot verify them yet.
 // When accounts exist, check ownership here (dev sockets skip the check).
 const canUse=(ws,ch)=>true;
-const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/json','.png':'image/png','.svg':'image/svg+xml','.mp3':'audio/mpeg','.ogg':'audio/ogg','.m4a':'audio/mp4'};
+const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/json','.png':'image/png','.svg':'image/svg+xml','.mp3':'audio/mpeg','.webp':'image/webp','.ogg':'audio/ogg','.m4a':'audio/mp4'};
 
 const server=http.createServer((req,res)=>{
  let p=decodeURIComponent(req.url.split('?')[0]);
@@ -27,14 +27,14 @@ const server=http.createServer((req,res)=>{
   req.on('end',()=>{if(crypto.timingSafeEqual(sha(b.trim()),sha(DEV_KEY))){const t=crypto.randomBytes(24).toString('hex');DEVT.set(t,now+72e5);res.writeHead(200,H);res.end(JSON.stringify({t}))}else{res.writeHead(401,H);res.end()}});
   return}
  if(p==='/')p='/index.html';
- if(PUB===__dirname&&!/^\/(index\.html|sim\.js|config\.js|manifest\.json|icon-\d+\.png|music\.js|[\w-]+\.(mp3|ogg|m4a))$/.test(p)){res.writeHead(404);return res.end('Not found')}
+ if(PUB===__dirname&&!/^\/(index\.html|sim\.js|config\.js|manifest\.json|icon-\d+\.png|music\.js|intro-\w+\.webp|[\w-]+\.(mp3|ogg|m4a))$/.test(p)){res.writeHead(404);return res.end('Not found')}
  const f=path.join(PUB,path.normalize(p));
  if(!f.startsWith(PUB)){res.writeHead(403);return res.end()}
  fs.readFile(f,(e,d)=>{
   if(e){res.writeHead(404);return res.end('Not found')}
   const ct=MIME[path.extname(f)]||'application/octet-stream',m=/bytes=(\d*)-(\d*)/.exec(req.headers.range||'');
   if(m){const a=m[1]?+m[1]:0,b=m[2]?Math.min(+m[2],d.length-1):d.length-1;res.writeHead(206,{'Content-Type':ct,'Accept-Ranges':'bytes','Content-Range':`bytes ${a}-${b}/${d.length}`,'Content-Length':b-a+1});return res.end(d.subarray(a,b+1))}
-  res.writeHead(200,Object.assign({'Content-Type':ct,'Accept-Ranges':'bytes'},ct.startsWith('audio')?{'Cache-Control':'public, max-age=86400'}:{}));res.end(d)})});
+  res.writeHead(200,Object.assign({'Content-Type':ct,'Accept-Ranges':'bytes'},(ct.startsWith('audio')||ct==='image/webp')?{'Cache-Control':'public, max-age=86400'}:{}));res.end(d)})});
 
 const wss=new WebSocketServer({server,maxPayload:2048});
 const rooms=new Map(),LET='ABCDEFGHJKLMNPQRSTUVWXYZ',DMG=[.5,1,1.5,2];
