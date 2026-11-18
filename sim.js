@@ -16,8 +16,11 @@ mt:{n:'Muay Thai',c:'#f59e0b',hair:'#2a1b12',band:'#fde68a',hp:110,sp:150,g:.6,i
  L:{n:'Kick',dmg:9,rng:58,arc:1.3,w:.12,a:.06,r:.22,kb:190,stun:.2},
  H:{n:'Clinch',dmg:0,rng:52,arc:1.5,w:.18,a:.06,r:.25,clinch:1,lg:60}}};
 const ORDER=['kyo','box','tai','mt'],DEF=['ken','bob','susie','tom'];
-const CM={kyo:{n:['Low Kick','Mid Kick','Axe Kick'],f:{dmg:1.9,kb:2,stun:.3}},box:{n:['Jab','Jab','Cross'],f:{dmg:2,kb:2,stun:.3}},tai:{n:['Palm','Palm','Wave Push'],f:{dmg:1.3,kb:2.6,stun:.25}},mt:{n:['Kick','Knee','Elbow'],f:{dmg:1.8,kb:1.2,stun:.5}}};
-for(const k of ORDER){S[k].b=k;S[k].cm=CM[k]}
+S.shl={n:'Shaolin Fist',c:'#d4a017',hair:'#ececec',band:'#d4a017',hp:118,sp:128,g:.65,id:48,
+ L:{n:'Iron Palm',dmg:11,rng:50,arc:1.2,w:.16,a:.06,r:.24,kb:210,stun:.22},
+ H:{n:'Dragon Fist',dmg:34,rng:60,arc:1.3,w:.48,a:.08,r:.6,kb:540,stun:.6,gb:.7,lg:170}};
+const CM={kyo:{n:['Low Kick','Mid Kick','Axe Kick'],f:{dmg:1.9,kb:2,stun:.3}},box:{n:['Jab','Jab','Cross'],f:{dmg:2,kb:2,stun:.3}},tai:{n:['Palm','Palm','Wave Push'],f:{dmg:1.3,kb:2.6,stun:.25}},mt:{n:['Kick','Knee','Elbow'],f:{dmg:1.8,kb:1.2,stun:.5}},shl:{n:['Iron Palm','Tiger Claw','Dragon Fist'],f:{dmg:1.7,kb:2,stun:.35}}};
+for(const k of ORDER.concat('shl')){S[k].b=k;S[k].cm=CM[k]}
 const mod=(b,o)=>Object.assign({},S[b],{b},o);
 S.ken=mod('kyo',{n:'Ken',t:'Balanced karate'});
 S.bob=mod('box',{n:'Bob',t:'Fast boxer'});
@@ -41,7 +44,9 @@ const ARENAS={
  sky:{n:'Sky Temple',hz:{cliff:1,wind:1},obs:sym4([[135,0,14,'pillar'],[75,75,14,'pillar']])},
  rooftop:{n:'Urban Rooftop',hz:{vent:1},obs:sym4([[70,70,22,'crate'],[0,165,15,'barrel']])},
  club:{n:'Fight Club',hz:{shrink:1},obs:sym4([[60,0,18,'barrel'],[155,0,17,'barrel']])}};
-Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom});for(const k in AB)S[k].ab=AB[k];
+AB.genzo={id:'aura',n:'Dragon Aura',cd:14,r:[0,150],dur:4,d:'4s: golden fists hit 35% harder and light hits cannot stagger you, but you move 10% slower'};
+S.genzo=mod('shl',{n:'Emperor Genzo',t:'Shaolin fist: slow, devastating',dm:1.2});
+Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom,shl:AB.genzo});for(const k in AB)S[k].ab=AB[k];
 const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 const r1=v=>Math.round(v*10)/10;
 
@@ -78,7 +83,7 @@ function createSim(){
    sim.ph='over';sim.pt=0;sim.msg=ch>=0?nm(ch)+' wins the match!':'Match drawn'}}
  function hurt(a,v,dmg,kb,stun,slow,blk){
   {const hv=a.atk&&a.atk.d===a.s.H;E({e:'sx',k:blk?'block':(a.s.b==='kyo'||(a.s.b==='mt'&&!hv)?'kick':'punch'),h:(hv||dmg>16)?1:0,c:a.cc|0})}
-  dmg*=sim.dmgM;if(v.buff>0&&v.bf==='iron'){dmg*=.4;kb*=.2;stun=0;slow=0}
+  dmg*=sim.dmgM;if(v.buff>0&&v.bf==='iron'){dmg*=.4;kb*=.2;stun=0;slow=0}else if(v.buff>0&&v.bf==='aura'&&dmg<14){stun=0;kb*=.4}
   {const rd=Math.min(Math.max(v.hp,0),dmg),A=sim.stats[a.i],V=sim.stats[v.i];if(A){A.d+=rd;A.h++}if(V)V.t+=rd}
   v.cc=0;v.ccT=0;v.cT=0;v.cs=0;v.lh={by:a.i,t:sim.clock};
   v.hp-=dmg;v.stun=Math.max(v.stun,stun);if(slow)v.slow=Math.max(v.slow,slow);
@@ -90,7 +95,7 @@ function createSim(){
   if(v.hp<=0){v.hp=0;v.ko=true;v.atk=null;v.clinch=null;v.sa=null;if(sim.stats[a.i])sim.stats[a.i].k++;v.vx+=Math.cos(an)*300;v.vy+=Math.sin(an)*300;
    E({e:'t',x:v.x,y:v.y-34,s:'KO!',c:'#ff5a4d'});E({e:'sh',v:16});sim.hs=.15;check()}}
  function hit(a,v,d,dist){
-  let dmg=d.dmg*(a.s.dm||1)*(a.buff>0&&a.bf==='od'?1.2:1),lab=d.n,kb=d.kb,stun=d.stun;
+  let dmg=d.dmg*(a.s.dm||1)*(a.buff>0?(a.bf==='od'?1.2:a.bf==='aura'?1.35:1):1),lab=d.n,kb=d.kb,stun=d.stun;
   if(a.s.b==='mt'&&d===a.s.L&&dist<34){dmg*=1.5;lab='Elbow'}
   // combo chain: light, light, light-finisher (or light then heavy as an ender). Landing the finisher ends the chain and knocks the foe away.
   const A0=a.atk,st=A0?A0.st|0:0,isL=d===a.s.L;let fin=false;
@@ -122,7 +127,7 @@ function createSim(){
  function doSpecial(f){const ab=f.s.ab;if(!ab||f.spCd>0||f.ko)return;const t=near(f),d=t?Math.hypot(t.x-f.x,t.y-f.y):1e9,id=ab.id;
   if(id==='lunge'){f.sa={id,t:0,hit:false};f.dx=Math.cos(f.face);f.dy=Math.sin(f.face)}
   else if(id==='knee'){if(d>ab.r[1])return;f.sa={id,t:0,hit:false}}
-  else if(id==='od'||id==='iron'){f.bf=id;f.buff=ab.dur;E({e:'p',x:f.x,y:f.y,c:id==='od'?'#fb923c':'#fcd34d',n:14})}
+  else if(id==='od'||id==='iron'||id==='aura'){f.bf=id;f.buff=ab.dur;E({e:'p',x:f.x,y:f.y,c:id==='od'?'#fb923c':id==='aura'?'#ffc107':'#fcd34d',n:14})}
   else if(id==='push'){for(const e of sim.F)if(foe(f,e)&&!e.ko&&e.inv<=0&&Math.hypot(e.x-f.x,e.y-f.y)<125)strike(f,e,8,640,.5,1.8);f.hp=Math.min(f.max,f.hp+6);E({e:'p',x:f.x,y:f.y,c:'#6ee7b7',n:18})}
   else if(id==='step'){if(!t||d>ab.r[1])return;f.x=t.x-Math.cos(t.face)*38;f.y=t.y-Math.sin(t.face)*38;solve(f);solve(f);f.face=Math.atan2(t.y-f.y,t.x-f.x);f.inv=.25;E({e:'p',x:f.x,y:f.y,c:f.s.c,n:12});strike(f,t,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
   else if(id==='slam')f.sa={id,t:0};
@@ -195,7 +200,7 @@ function createSim(){
   const free=f.stun<=0&&!f.atk&&!f.clinch&&f.dashT<=0&&f.lock<=0&&!f.sa;
   if(free){
    if(I.guard)f.gT=f.gT<0?0:f.gT+dt;else f.gT=-1;
-   const g=f.gT>=0,sp=f.s.sp*(f.slow>0?.55:1)*(g?.5:1)*(f.buff>0&&f.bf==='od'?1.35:1);mvx=I.mx*sp;mvy=I.my*sp;
+   const g=f.gT>=0,sp=f.s.sp*(f.slow>0?.55:1)*(g?.5:1)*(f.buff>0&&f.bf==='od'?1.35:1)*(f.buff>0&&f.bf==='aura'?.9:1);mvx=I.mx*sp;mvy=I.my*sp;
    if(f.buf&&(!g||f.buf==='dash'||f.buf==='special')){const b=f.buf;f.buf=null;
     if(b==='dash'){if(f.dashCd<=0){E({e:'sx',k:'dash'});f.dashT=.18;f.inv=.22;f.dashCd=.9;f.gT=-1;let dx=I.mx,dy=I.my;if(Math.hypot(dx,dy)<.2){dx=-Math.cos(f.face);dy=-Math.sin(f.face)}
      const l=Math.hypot(dx,dy);f.dx=dx/l;f.dy=dy/l;E({e:'p',x:f.x,y:f.y,c:'#ffffff77',n:5,sp:80})}}
