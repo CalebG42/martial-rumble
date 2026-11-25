@@ -19,8 +19,19 @@ const ORDER=['kyo','box','tai','mt'],DEF=['ken','bob','susie','tom'];
 S.shl={n:'Shaolin Fist',c:'#d4a017',hair:'#ececec',band:'#d4a017',hp:118,sp:128,g:.65,id:48,
  L:{n:'Iron Palm',dmg:11,rng:50,arc:1.2,w:.16,a:.06,r:.24,kb:210,stun:.22},
  H:{n:'Dragon Fist',dmg:34,rng:60,arc:1.3,w:.48,a:.08,r:.6,kb:540,stun:.6,gb:.7,lg:170}};
-const CM={kyo:{n:['Low Kick','Mid Kick','Axe Kick'],f:{dmg:1.9,kb:2,stun:.3}},box:{n:['Jab','Jab','Cross'],f:{dmg:2,kb:2,stun:.3}},tai:{n:['Palm','Palm','Wave Push'],f:{dmg:1.3,kb:2.6,stun:.25}},mt:{n:['Kick','Knee','Elbow'],f:{dmg:1.8,kb:1.2,stun:.5}},shl:{n:['Iron Palm','Tiger Claw','Dragon Fist'],f:{dmg:1.7,kb:2,stun:.35}}};
-for(const k of ORDER.concat('shl')){S[k].b=k;S[k].cm=CM[k]}
+S.nin={n:'Ninjutsu',c:'#7c3aed',hair:'#101018',band:'#c62828',hp:104,sp:186,g:.6,id:44,
+ L:{n:'Slash',dmg:6.5,rng:44,arc:1.1,w:.05,a:.04,r:.09,kb:70,stun:.1},
+ H:{n:'Shadow Strike',dmg:19,rng:54,arc:1.3,w:.2,a:.06,r:.34,kb:260,stun:.4,lg:200}};
+S.rob={n:'Robotics',c:'#38bdf8',hair:'#4b5563',band:'#38bdf8',hp:140,sp:108,g:.75,id:60,
+ L:{n:'Pulse Shot',dmg:6,rng:280,arc:.5,w:.12,a:.04,r:.32,kb:90,stun:.12,pj:{k:0,dmg:6,sp:640,r:8,life:.9,kb:110,stun:.12}},
+ H:{n:'Piston Slam',dmg:30,rng:58,arc:1.3,w:.55,a:.08,r:.62,kb:520,stun:.55,gb:.7,lg:120}};
+S.reg={n:'Regeneration',c:'#34d399',hair:'#16a34a',band:'#065f46',hp:115,sp:160,g:.65,id:46,regen:3,
+ L:{n:'Flicker',dmg:6,rng:44,arc:1.1,w:.03,a:.035,r:.05,kb:60,stun:.09},
+ H:{n:'Rising Palm',dmg:17,rng:50,arc:1.3,w:.18,a:.06,r:.3,kb:300,stun:.4,lg:120}};
+const CM={kyo:{n:['Low Kick','Mid Kick','Axe Kick'],f:{dmg:1.9,kb:2,stun:.3}},box:{n:['Jab','Jab','Cross'],f:{dmg:2,kb:2,stun:.3}},tai:{n:['Palm','Palm','Wave Push'],f:{dmg:1.3,kb:2.6,stun:.25}},mt:{n:['Kick','Knee','Elbow'],f:{dmg:1.8,kb:1.2,stun:.5}},shl:{n:['Iron Palm','Tiger Claw','Dragon Fist'],f:{dmg:1.7,kb:2,stun:.35}},
+ nin:{n:['Slash','Cross Slash','Rising Slash'],f:{dmg:1.8,kb:1.5,stun:.35}},rob:{n:['Pulse Shot','Pulse Shot','Pulse Shot'],f:{dmg:1,kb:1,stun:.1}},
+ reg:{n:['Flicker','Flicker','Flurry','Burst Palm'],f:{dmg:2.6,kb:1.4,stun:.3},len:4,sp:.1}};
+for(const k of ORDER.concat(['shl','nin','rob','reg'])){S[k].b=k;S[k].cm=CM[k]}
 const mod=(b,o)=>Object.assign({},S[b],{b},o);
 S.ken=mod('kyo',{n:'Ken',t:'Balanced karate'});
 S.bob=mod('box',{n:'Bob',t:'Fast boxer'});
@@ -45,17 +56,23 @@ const ARENAS={
  rooftop:{n:'Urban Rooftop',hz:{vent:1},obs:sym4([[70,70,22,'crate'],[0,165,15,'barrel']])},
  club:{n:'Fight Club',hz:{shrink:1},obs:sym4([[60,0,18,'barrel'],[155,0,17,'barrel']])}};
 AB.genzo={id:'aura',n:'Dragon Aura',cd:14,r:[0,150],dur:4,d:'4s: golden fists hit 35% harder and light hits cannot stagger you, but you move 10% slower'};
+AB.meso={id:'smoke',n:'Smoke Step',cd:11,r:[0,170],dur:1.6,d:'Vanish for 1.6s: untargetable, untouchable and 40% faster'};
+AB.abf={id:'salvo',n:'Rocket Salvo',cd:10,r:[80,330],d:'Fire three rockets in a spread'};
+AB.xion={id:'regen',n:'Regeneration',cd:15,r:[0,400],dur:3,d:'Heal 30 HP over 3s and shake off slows'};
 S.genzo=mod('shl',{n:'Emperor Genzo',t:'Shaolin fist: slow, devastating',dm:1.2});
-Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom,shl:AB.genzo});for(const k in AB)S[k].ab=AB[k];
+S.meso=mod('nin',{n:'Meso',t:'Ninja: fast, evasive, deadly from behind'});
+S.abf=mod('rob',{n:'ABF-10',t:'Robot: heavy hits and plasma shots'});
+S.xion=mod('reg',{n:'Xion',t:'Healing factor, the fastest combos'});
+Object.assign(AB,{kyo:AB.ken,box:AB.bob,tai:AB.susie,mt:AB.tom,shl:AB.genzo,nin:AB.meso,rob:AB.abf,reg:AB.xion});for(const k in AB)S[k].ab=AB[k];
 const ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 const r1=v=>Math.round(v*10)/10;
 
 function createSim(){
- const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],arena:'dojo',obs:ARENAS.dojo.obs,nextAr:null,mode:'ffa',team:[0,0,1,1],tw:[0,0],nextMd:null,fastCd:false,clock:0,hz:[],zt:4,vt:3,wn:{s:0,t:7,dx:0,dy:0},rr:R,stats:[0,1,2,3].map(()=>({d:0,t:0,h:0,s:0,k:0})),dev:false,target:3,maxRd:7,rt:60,ft:0};
+ const sim={F:[],ev:[],ph:'lobby',pt:0,msg:'',rd:0,aiFill:true,dmgM:1,paused:false,hs:0,wins:[0,0,0,0],names:['','','',''],human:[0,0,0,0],chars:DEF.slice(),dummy:[0,0,0,0],away:[0,0,0,0],arena:'dojo',obs:ARENAS.dojo.obs,nextAr:null,mode:'ffa',team:[0,0,1,1],tw:[0,0],nextMd:null,fastCd:false,clock:0,pj:[],hz:[],zt:4,vt:3,wn:{s:0,t:7,dx:0,dy:0},rr:R,stats:[0,1,2,3].map(()=>({d:0,t:0,h:0,s:0,k:0})),dev:false,target:3,maxRd:7,rt:60,ft:0};
  const E=o=>sim.ev.push(o);
  const nm=i=>sim.human[i]||sim.away[i]?sim.names[i]:(sim.dummy[i]?'Dummy':'CPU');
  function foe(a,b){return a!==b&&!(sim.mode==='team'&&sim.team[a.i]===sim.team[b.i])}   // teammates are never targets and never take damage
- function near(f){let b=null,bd=1e9;for(const e of sim.F)if(foe(f,e)&&!e.ko){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
+ function near(f){let b=null,bd=1e9;for(const e of sim.F)if(foe(f,e)&&!e.ko&&!(e.buff>0&&e.bf==='smoke')){const d=Math.hypot(e.x-f.x,e.y-f.y);if(d<bd){bd=d;b=e}}return b}
  function mk(i,k){const s=S[k],a=i*TAU/4+TAU/8;
   return{i,k,s,x:Math.cos(a)*170,y:Math.sin(a)*170,vx:0,vy:0,dx:0,dy:0,face:a+Math.PI,hp:s.hp,max:s.hp,stun:0,slow:0,inv:0,dashT:0,dashCd:0,lock:0,atk:null,gT:-1,combo:0,comboT:0,cs:0,cT:0,cc:0,ccT:0,fell:0,lh:null,clinch:null,ko:false,off:false,buf:null,bufT:0,limb:1,spCd:3,buff:0,bf:0,sa:null,in:{mx:0,my:0,guard:false},
   ai:{t:.8+Math.random(),sw:0,sd:1,gu:0,sk:.3+Math.random()*.4,ag:.7+Math.random()*.5}}}
@@ -99,9 +116,10 @@ function createSim(){
   if(a.s.b==='mt'&&d===a.s.L&&dist<34){dmg*=1.5;lab='Elbow'}
   // combo chain: light, light, light-finisher (or light then heavy as an ender). Landing the finisher ends the chain and knocks the foe away.
   const A0=a.atk,st=A0?A0.st|0:0,isL=d===a.s.L;let fin=false;
-  if(isL){lab=a.s.cm.n[Math.min(2,st)];if(st>=2){const F=a.s.cm.f;dmg*=F.dmg;kb*=F.kb;stun=Math.max(stun,F.stun);fin=true}}
+  const LAST=(a.s.cm.len||3)-1;if(isL){lab=a.s.cm.n[Math.min(LAST,st)];if(st>=LAST){const F=a.s.cm.f;dmg*=F.dmg;kb*=F.kb;stun=Math.max(stun,F.stun);fin=true}}
   else if(st>=1){dmg*=1.35;lab='Chain '+d.n}
   if(v.atk&&!v.atk.hit&&v.atk.t<v.atk.d.w){dmg*=1.25;stun+=.08;E({e:'t',x:v.x,y:v.y-46,s:'Counter!',c:'#fda4af'})}   // hitting someone who is winding up
+  if(a.s.b==='nin'&&Math.abs(ad(Math.atan2(a.y-v.y,a.x-v.x),v.face))>2.2){dmg*=1.5;E({e:'t',x:v.x,y:v.y-58,s:'Backstab!',c:'#c4b5fd'})}
   const nC=(a.ccT>0?a.cc:0)+1;if(nC>=4)dmg*=Math.max(.5,1-.12*(nC-3));                                                  // long combos do less and less
   const fa=Math.atan2(a.y-v.y,a.x-v.x);
   if(v.gT>=0&&Math.abs(ad(fa,v.face))<1.3){
@@ -127,6 +145,9 @@ function createSim(){
  function doSpecial(f){const ab=f.s.ab;if(!ab||f.spCd>0||f.ko)return;const t=near(f),d=t?Math.hypot(t.x-f.x,t.y-f.y):1e9,id=ab.id;
   if(id==='lunge'){f.sa={id,t:0,hit:false};f.dx=Math.cos(f.face);f.dy=Math.sin(f.face)}
   else if(id==='knee'){if(d>ab.r[1])return;f.sa={id,t:0,hit:false}}
+  else if(id==='smoke'){f.bf='smoke';f.buff=ab.dur;f.inv=Math.max(f.inv,1);E({e:'p',x:f.x,y:f.y,c:'#a78bfa',n:18})}
+  else if(id==='regen'){f.bf='regen';f.buff=ab.dur;f.slow=0;E({e:'p',x:f.x,y:f.y,c:'#4ade80',n:16})}
+  else if(id==='salvo'){for(const o of[-.2,0,.2])spawnP(f,f.face+o,{k:1,dmg:12,sp:520,r:10,life:1.4,kb:260,stun:.3})}
   else if(id==='od'||id==='iron'||id==='aura'){f.bf=id;f.buff=ab.dur;E({e:'p',x:f.x,y:f.y,c:id==='od'?'#fb923c':id==='aura'?'#ffc107':'#fcd34d',n:14})}
   else if(id==='push'){for(const e of sim.F)if(foe(f,e)&&!e.ko&&e.inv<=0&&Math.hypot(e.x-f.x,e.y-f.y)<125)strike(f,e,8,640,.5,1.8);f.hp=Math.min(f.max,f.hp+6);E({e:'p',x:f.x,y:f.y,c:'#6ee7b7',n:18})}
   else if(id==='step'){if(!t||d>ab.r[1])return;f.x=t.x-Math.cos(t.face)*38;f.y=t.y-Math.sin(t.face)*38;solve(f);solve(f);f.face=Math.atan2(t.y-f.y,t.x-f.x);f.inv=.25;E({e:'p',x:f.x,y:f.y,c:f.s.c,n:12});strike(f,t,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
@@ -141,12 +162,18 @@ function createSim(){
   else if(A.id==='slam'&&A.t>=.45){for(const e of sim.F){if(!foe(f,e)||e.ko||e.inv>0)continue;if(Math.hypot(e.x-f.x,e.y-f.y)<ab.rad)strike(f,e,ab.dmg*(f.s.dm||1),ab.kb,ab.stun,0)}
    E({e:'sx',k:'sp_slam2'});E({e:'p',x:f.x,y:f.y,c:'#fbbf24',n:26,sp:420});sim.hs=Math.max(sim.hs,.1);E({e:'sh',v:10});f.sa=null;f.lock=.35}
   return m}
- function aiSpec(f,dt){const ab=f.s.ab,t=near(f);if(!ab||!t||f.buf||f.spCd>0||f.stun>0||f.atk||f.sa)return;const d=Math.hypot(t.x-f.x,t.y-f.y);if(d>=ab.r[0]&&d<=ab.r[1]&&Math.random()<dt*.7){f.buf='special';f.bufT=.25}}
+ function aiSpec(f,dt){const ab=f.s.ab,t=near(f);if(!ab||!t||f.buf||f.spCd>0||f.stun>0||f.atk||f.sa)return;if(ab.id==='regen'&&f.hp>f.max*.7)return;const d=Math.hypot(t.x-f.x,t.y-f.y);if(d>=ab.r[0]&&d<=ab.r[1]&&Math.random()<dt*.7){f.buf='special';f.bufT=.25}}
  // ---- obstacles: fighters slide around them and can never end up inside one ----
  const TN=['Blue Team','Red Team'];
  function tRevive(dt){for(const f of sim.F){if(f.off)continue;if(f.ko){f.kot=(f.kot||0)+dt;if(f.kot>1.6){const n=mk(f.i,sim.chars[f.i]);n.spCd=0;Object.assign(f,n);f.kot=0}}else f.kot=0}}
  // ---- arena hazards. Everything runs here (on the server online), so every player sees and suffers the same thing.
- function resetHz(){sim.hz=[];sim.zt=4;sim.vt=3;sim.wn={s:0,t:7,dx:0,dy:0};sim.rr=R}
+ function spawnP(f,ang,p){if(sim.pj.length>24)return;sim.pj.push({x:f.x+Math.cos(ang)*20,y:f.y+Math.sin(ang)*20,vx:Math.cos(ang)*p.sp,vy:Math.sin(ang)*p.sp,r:p.r,dmg:p.dmg,kb:p.kb,stun:p.stun,life:p.life,own:f.i,k:p.k||0})}
+ function projs(dt){const keep=[];for(const p of sim.pj){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0||Math.hypot(p.x,p.y)>R+20)continue;
+   if(sim.obs.some(o=>Math.hypot(p.x-o.x,p.y-o.y)<o.r+p.r)){E({e:'p',x:p.x,y:p.y,c:p.k?'#fb923c':'#38bdf8',n:5});continue}
+   const own=sim.F[p.own];let hit=false;
+   for(const v of sim.F){if(v.ko||v.off||v.inv>0||!own||!foe(own,v))continue;if(Math.hypot(v.x-p.x,v.y-p.y)<15+p.r){strike(own,v,p.dmg*(own.s.dm||1)*(own.buff>0&&own.bf==='od'?1.2:1),p.kb,p.stun,0);E({e:'p',x:p.x,y:p.y,c:p.k?'#fb923c':'#38bdf8',n:8});hit=true;break}}
+   if(!hit)keep.push(p)}sim.pj=keep}
+ function resetHz(){sim.pj=[];sim.hz=[];sim.zt=4;sim.vt=3;sim.wn={s:0,t:7,dx:0,dy:0};sim.rr=R}
  function koEnv(f,txt){f.hp=0;f.ko=true;f.atk=null;f.sa=null;f.clinch=null;const l=f.lh;if(l&&sim.clock-l.t<3&&sim.stats[l.by])sim.stats[l.by].k++;
   E({e:'t',x:f.x,y:f.y-34,s:txt,c:'#ff5a4d'});E({e:'sh',v:14});sim.hs=.12;check()}
  function envHit(f,dmg,stun,kx,ky){if(f.ko||f.off)return;const V=sim.stats[f.i];if(V)V.t+=Math.min(f.hp,dmg);f.hp-=dmg;f.stun=Math.max(f.stun,stun);f.atk=null;f.sa=null;f.clinch=null;f.vx+=kx;f.vy+=ky;f.cc=0;f.ccT=0;f.cT=0;f.cs=0;
@@ -187,6 +214,7 @@ function createSim(){
   if(f.ko){f.x+=f.vx*dt;f.y+=f.vy*dt;const q=Math.pow(.02,dt);f.vx*=q;f.vy*=q;return}
   for(const k of['stun','slow','inv','dashCd','lock','comboT','spCd','buff','cT','ccT'])f[k]=Math.max(0,f[k]-dt);
   f.bufT-=dt;if(f.bufT<=0)f.buf=null;if(f.ccT<=0)f.cc=0;
+  if(!f.ko&&!f.off){if(f.s.regen&&(!f.lh||sim.clock-f.lh.t>3))f.hp=Math.min(f.max,f.hp+f.s.regen*dt);if(f.buff>0&&f.bf==='regen'){f.hp=Math.min(f.max,f.hp+10*dt);f.slow=0}}
   const I=f.in,t=near(f);let mvx=0,mvy=0;
   if(f.clinch){const c=f.clinch,v=c.v;
    if(v.ko||f.stun>0)f.clinch=null;
@@ -200,17 +228,18 @@ function createSim(){
   const free=f.stun<=0&&!f.atk&&!f.clinch&&f.dashT<=0&&f.lock<=0&&!f.sa;
   if(free){
    if(I.guard)f.gT=f.gT<0?0:f.gT+dt;else f.gT=-1;
-   const g=f.gT>=0,sp=f.s.sp*(f.slow>0?.55:1)*(g?.5:1)*(f.buff>0&&f.bf==='od'?1.35:1)*(f.buff>0&&f.bf==='aura'?.9:1);mvx=I.mx*sp;mvy=I.my*sp;
+   const g=f.gT>=0,sp=f.s.sp*(f.slow>0?.55:1)*(g?.5:1)*(f.buff>0&&f.bf==='od'?1.35:1)*(f.buff>0&&f.bf==='aura'?.9:1)*(f.buff>0&&f.bf==='smoke'?1.4:1);mvx=I.mx*sp;mvy=I.my*sp;
    if(f.buf&&(!g||f.buf==='dash'||f.buf==='special')){const b=f.buf;f.buf=null;
     if(b==='dash'){if(f.dashCd<=0){E({e:'sx',k:'dash'});f.dashT=.18;f.inv=.22;f.dashCd=.9;f.gT=-1;let dx=I.mx,dy=I.my;if(Math.hypot(dx,dy)<.2){dx=-Math.cos(f.face);dy=-Math.sin(f.face)}
      const l=Math.hypot(dx,dy);f.dx=dx/l;f.dy=dy/l;E({e:'p',x:f.x,y:f.y,c:'#ffffff77',n:5,sp:80})}}
     else if(b==='special')doSpecial(f);
-    else{const lt=b==='light',stg=lt?(f.cT>0?Math.min(2,f.cs+1):0):(f.cT>0?Math.max(1,f.cs):0),mv=lt?f.s.L:f.s.H;
-     f.atk={d:mv,t:stg>=1&&lt?mv.w*.45:0,hit:false,st:stg,ld:false};f.limb*=-1;f.gT=-1}}
+    else{const lt=b==='light',stg=lt?(f.cT>0?Math.min((f.s.cm.len||3)-1,f.cs+1):0):(f.cT>0?Math.max(1,f.cs):0),mv=lt?f.s.L:f.s.H;
+     f.atk={d:mv,t:stg>=1&&lt?mv.w*(f.s.cm.sp||.45):0,hit:false,st:stg,ld:false};f.limb*=-1;f.gT=-1}}
   }else if(!f.atk||f.stun>0)f.gT=-1;
   if(f.dashT>0){f.dashT=Math.max(0,f.dashT-dt);mvx=f.dx*480;mvy=f.dy*480}
   if(f.sa){const m=spec(f,dt);mvx=m[0];mvy=m[1]}
   if(f.atk&&f.stun<=0){const A=f.atk,d=A.d;A.t+=dt*(f.buff>0&&f.bf==='od'?1.3:1);
+   if(!A.hit&&A.t>=d.w&&d.pj){A.hit=true;spawnP(f,f.face,d.pj);E({e:'sx',k:'shot'})}
    if(!A.hit&&A.t>=d.w){A.hit=true;const lg=d.lg||90;f.vx+=Math.cos(f.face)*lg;f.vy+=Math.sin(f.face)*lg;resolve(f,d)}
    if(f.atk&&A.t>=d.w+d.a+d.r){if(!A.ld)f.cT=0;f.atk=null}}
   f.x+=(mvx+f.vx)*dt;f.y+=(mvy+f.vy)*dt;const q=Math.pow(.004,dt);f.vx*=q;f.vy*=q}
@@ -251,9 +280,9 @@ function createSim(){
    let dx=b.x-a.x,dy=b.y-a.y;const d=Math.hypot(dx,dy)||1;if(d<30){const p=(30-d)/2;dx/=d;dy/=d;a.x-=dx*p;a.y-=dy*p;b.x+=dx*p;b.y+=dy*p}}
   for(const f of F){solve(f);solve(f)}
   if(sim.ph==='count'){sim.pt-=dt;if(sim.pt<=0){sim.ph='fight';sim.ft=0}}
-  else if(sim.ph==='fight'){sim.ft+=dt;sim.clock+=dt;check();if(sim.mode==='train')tRevive(dt);else hazards(dt)}
+  else if(sim.ph==='fight'){sim.ft+=dt;sim.clock+=dt;check();if(sim.mode==='train')tRevive(dt);else hazards(dt);projs(dt)}
   else if(sim.ph==='end'){sim.pt-=dt;if(sim.pt<=0)round()}};
- sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,ar:sim.arena,hz:sim.hz.map(o=>[o.k==='zap'?0:1,Math.round(o.x),Math.round(o.y),o.r,Math.round(o.t*100)/100,o.T]),wd:sim.wn.s?[sim.wn.s,sim.wn.dx,sim.wn.dy]:0,rr:Math.round(sim.rr),md:sim.mode,st:sim.ph==='over'?sim.stats.map(x=>[Math.round(x.d),Math.round(x.t),x.h,x.s,x.k]):0,tm:sim.mode==='team'?sim.team:0,dz:sim.dummy,w:sim.wins,
+ sim.snapshot=()=>{const s={p:sim.ph,pt:r1(Math.max(0,sim.pt)),m:sim.msg,rd:sim.rd,pa:sim.paused?1:0,ai:sim.aiFill?1:0,dm:sim.dmgM,dv:sim.dev?1:0,tl:r1(Math.max(0,sim.rt-sim.ft)),tg:sim.target,ar:sim.arena,pj:sim.ph==='fight'?sim.pj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.vx),Math.round(p.vy),p.k]):0,hz:sim.hz.map(o=>[o.k==='zap'?0:1,Math.round(o.x),Math.round(o.y),o.r,Math.round(o.t*100)/100,o.T]),wd:sim.wn.s?[sim.wn.s,sim.wn.dx,sim.wn.dy]:0,rr:Math.round(sim.rr),md:sim.mode,st:sim.ph==='over'?sim.stats.map(x=>[Math.round(x.d),Math.round(x.t),x.h,x.s,x.k]):0,tm:sim.mode==='team'?sim.team:0,dz:sim.dummy,w:sim.wins,
   f:sim.F.map(f=>({k:f.k,n:nm(f.i),h:sim.human[f.i]?1:0,x:r1(f.x),y:r1(f.y),a:Math.round(f.face*100)/100,hp:Math.round(f.hp),mx:f.max,
    ko:f.ko?1:0,off:f.off?1:0,st:f.stun>0?1:0,sl:f.slow>0?1:0,iv:f.inv>0?1:0,sc:r1(f.spCd),aw:sim.away[f.i]?1:0,fl:f.fell?1:0,cc:f.ccT>0&&f.cc>1?f.cc:0,bf:f.buff>0?f.bf:0,sa:f.sa?f.sa.id:0,g:f.gT>=0?Math.round(f.gT*100)/100:-1,
    at:f.atk?{d:f.atk.d===f.s.H?'H':'L',t:Math.round(f.atk.t*1000)/1000,l:f.limb}:0})),e:sim.ev};
